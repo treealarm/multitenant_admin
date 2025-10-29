@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35431.28
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mt_admin.Server", "mt_admin.Server\mt_admin.Server.csproj", "{5E4709C5-4EE6-4A04-91EB-5983D4D09A32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mt_admin.Server", "mt_admin.Server\mt_admin.Server.csproj", "{5E4709C5-4EE6-4A04-91EB-5983D4D09A32}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "mt_admin.client", "mt_admin.client\mt_admin.client.esproj", "{DD4D4999-AB7F-4258-835F-68FD3034A9F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeycloackAdmin", "KeycloackAdmin\KeycloackAdmin.csproj", "{88BD2B39-6EA9-4ECC-88E3-F776B5825095}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +25,10 @@ Global
 		{DD4D4999-AB7F-4258-835F-68FD3034A9F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD4D4999-AB7F-4258-835F-68FD3034A9F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DD4D4999-AB7F-4258-835F-68FD3034A9F6}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{88BD2B39-6EA9-4ECC-88E3-F776B5825095}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88BD2B39-6EA9-4ECC-88E3-F776B5825095}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88BD2B39-6EA9-4ECC-88E3-F776B5825095}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88BD2B39-6EA9-4ECC-88E3-F776B5825095}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

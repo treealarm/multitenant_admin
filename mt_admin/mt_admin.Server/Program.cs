@@ -1,8 +1,18 @@
+using KeycloackAdmin;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<IKeycloakAdminClient>(sp =>
+    new KeycloakAdminClient(
+        keycloakUrl: builder.Configuration["Keycloak:Url"]!,
+        adminUser: builder.Configuration["Keycloak:AdminUser"]!,
+        adminPassword: builder.Configuration["Keycloak:AdminPassword"]!
+    )
+);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
