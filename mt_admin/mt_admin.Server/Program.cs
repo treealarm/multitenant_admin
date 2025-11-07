@@ -1,4 +1,6 @@
 using KeycloackAdmin;
+using Microsoft.Extensions.DependencyInjection;
+using mt_admin.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,11 +8,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+var kcConfig = new KeycloakConfig
+{
+  Url = Environment.GetEnvironmentVariable("KEYCLOAK_URL") ?? "http://localhost:8080",
+  AdminUser = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_USER") ?? "admin",
+  AdminPassword = Environment.GetEnvironmentVariable("KEYCLOAK_ADMIN_PASSWORD") ?? "admin",
+  ClientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? "admin-cli",
+};
+
+builder.Services.AddSingleton(kcConfig);
+builder.Services.AddHttpClient();
+
 builder.Services.AddScoped<IKeycloakAdminClient>(sp =>
     new KeycloakAdminClient(
-        keycloakUrl: builder.Configuration["Keycloak:Url"]!,
-        adminUser: builder.Configuration["Keycloak:AdminUser"]!,
-        adminPassword: builder.Configuration["Keycloak:AdminPassword"]!
+        keycloakUrl: kcConfig.Url!,
+        adminUser: kcConfig.AdminUser!,
+        adminPassword: kcConfig.AdminPassword!
     )
 );
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

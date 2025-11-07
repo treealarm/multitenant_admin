@@ -1,24 +1,20 @@
 {
-  "$schema": "http://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:20801",
-      "sslPort": 0
-    }
-  },
   "profiles": {
     "http": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5144",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
-      }
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
+        "KEYCLOAK_URL": "http://localhost:8080",
+        "KEYCLOAK_REALM": "master",
+        "KEYCLOAK_CLIENT_ID": "admin-cli",
+        "KEYCLOAK_ADMIN_USER": "admin",
+        "KEYCLOAK_ADMIN_PASSORD": "admin"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5144"
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -29,6 +25,14 @@
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
       }
     }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:20801",
+      "sslPort": 0
+    }
   }
 }
-

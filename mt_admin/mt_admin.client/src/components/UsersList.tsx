@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from '../store';
-import { fetchUsers } from "../usersSlice";
+import { fetchUsers } from "../store/usersSlice";
+
 import {
   CircularProgress,
   Container,

@@ -15,7 +15,9 @@ namespace KeycloackAdmin
 
     public KeycloakAdminClient(string keycloakUrl, string adminUser, string adminPassword)
     {
-      var options = new KeycloakOptions(authenticationRealm: "master");
+      var keycloakRealm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? "master";
+
+      var options = new KeycloakOptions(authenticationRealm: keycloakRealm);
       _client = new KeycloakClient(keycloakUrl, adminUser, adminPassword, options);
     }
 

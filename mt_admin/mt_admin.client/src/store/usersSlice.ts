@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
+import { authFetch } from "../authFetch";
 export interface User {
   id: string;
   username: string;
@@ -20,7 +20,7 @@ const initialState: UsersState = {
 export const fetchUsers = createAsyncThunk<User[], string>(
   "users/fetch",
   async (realmName) => {
-    const res = await fetch(`/api/KeycloakAdmin/${realmName}`);
+    const res = await authFetch(`/api/KeycloakAdmin/${realmName}`);
 
     const text = await res.text();  // читаем как текст
     console.log("Response body:", text);
