@@ -1,5 +1,7 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+// usersSlice.ts
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { authFetch } from "../authFetch";
+
 export interface User {
   id: string;
   username: string;
@@ -17,26 +19,54 @@ const initialState: UsersState = {
   loading: false,
 };
 
+// --- Async thunks ---
 export const fetchUsers = createAsyncThunk<User[], string>(
   "users/fetch",
   async (realmName) => {
     const res = await authFetch(`/api/KeycloakAdmin/${realmName}`);
+    const text = await res.text();
 
-    const text = await res.text();  // читаем как текст
-    console.log("Response body:", text);
-
-    if (!res.ok) {
-      throw new Error(`Failed to load users (${res.status})`);
-    }
-
-    try {
-      return JSON.parse(text) as User[]; // пробуем парсить JSON
-    } catch (err) {
-      console.error("Failed to parse JSON:", err);
-      throw new Error("Invalid JSON received from server");
-    }
+    if (!res.ok) throw new Error(`Failed to load users (${res.status})`);
+    return JSON.parse(text) as User[];
   }
 );
+
+// Добавляем пользователя
+export const addUser = createAsyncThunk<void, { realm: string; username: string; password: string }>(
+  "users/add",
+  async ({ realm, username, password }) => {
+    const res = await authFetch(`/api/KeycloakAdmin/${realm}/user`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // <- важно
+      },
+      body: JSON.stringify({ username, password }),
+    }
+
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to add user: ${text}`);
+    }
+    // ничего не возвращаем, после добавления можно заново fetchUsers
+  }
+);
+
+// Удаление пользователя (если у Keycloak API есть DELETE)
+export const deleteUser = createAsyncThunk<
+  void,
+  { realm: string; id: string }
+  >
+  ("users/delete", async ({ realm, id }) => {
+  const res = await authFetch(`/api/KeycloakAdmin/${realm}/user/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to delete user: ${text}`);
+  }
+});
 
 
 const usersSlice = createSlice({
@@ -45,16 +75,31 @@ const usersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // fetchUsers
       .addCase(fetchUsers.pending, (state) => {
         state.loading = true;
         state.error = undefined;
       })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
+      .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<User[]>) => {
         state.loading = false;
         state.items = action.payload;
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.error.message;
+      })
+      // addUser
+      .addCase(addUser.fulfilled, (state, action) => {
+        // после добавления заново подгружаем пользователей
+      })
+      .addCase(addUser.rejected, (state, action) => {
+        state.error = action.error.message;
+      })
+      // deleteUser
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        // после удаления заново fetchUsers
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
         state.error = action.error.message;
       });
   },

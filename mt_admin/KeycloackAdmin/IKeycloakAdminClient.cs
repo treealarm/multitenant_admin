@@ -12,5 +12,6 @@ namespace KeycloackAdmin
 
     Task<IEnumerable<User>> GetUsersAsync(string realmName);
     Task<IEnumerable<Role>> GetUserRolesAsync(string realmName, string userId);
+    Task<bool> DeleteUserAsync(string realmName, string userId);
   }
 }

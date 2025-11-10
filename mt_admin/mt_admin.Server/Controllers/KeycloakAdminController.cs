@@ -84,6 +84,19 @@ namespace KeycloackAdmin
       return Ok(roles);
     }
 
+    /// <summary>
+    /// Delete a user.
+    /// </summary>
+    [HttpDelete("{realmName}/user/{userId}")]
+    public async Task<IActionResult> DeleteUser(string realmName, string userId)
+    {
+      var success = await _kcAdmin.DeleteUserAsync(realmName, userId);
+      if (!success)
+        return NotFound($"User with ID '{userId}' not found in realm '{realmName}'.");
+      return Ok($"User with ID '{userId}' has been deleted from realm '{realmName}'.");
+    }
+
+
   }
 
 

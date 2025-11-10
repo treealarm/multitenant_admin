@@ -134,5 +134,20 @@ namespace KeycloackAdmin
       var roles = await _client.GetRealmRoleMappingsForUserAsync(realmName, userId);
         return roles ?? Enumerable.Empty<Role>();
     }
+
+    public async Task<bool> DeleteUserAsync(string realmName, string userId)
+    {
+      try
+      {
+        await _client.DeleteUserAsync(realmName, userId);
+        return true;
+      }
+      catch (Exception)
+      {
+        return false;
+      }
+    }
+
+
   }
 }
