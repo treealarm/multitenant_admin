@@ -1,13 +1,24 @@
 ﻿using Keycloak.Net.Models.Roles;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace KeycloackAdmin
 {
+  public class RoleConstants
+  {
+    public const string admin = "admin";
+    public const string user = "user";
+    public const string power_user = "power_user";
+  }
+
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
   public class KeycloakAdminController : ControllerBase
   {
     private readonly IKeycloakAdminClient _kcAdmin;
@@ -17,9 +28,25 @@ namespace KeycloackAdmin
       _kcAdmin = kcAdmin;
     }
 
+
+    [HttpGet("whoami")]
+    public IActionResult WhoAmI()
+    {
+      var username = User.FindFirst(ClaimTypes.Name)?.Value;
+      var realm = User.FindFirst("realm")?.Value;
+      var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value);
+
+      return Ok(new
+      {
+        Username = username,
+        Realm = realm,
+        Roles = roles
+      });
+    }
     /// <summary>
     /// Create a new realm.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("realm/{realmName}")]
     public async Task<IActionResult> CreateRealm(string realmName)
     {
@@ -31,6 +58,7 @@ namespace KeycloackAdmin
     /// <summary>
     /// Create a new user.
     /// </summary>
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.admin + "," + RoleConstants.power_user)]
     [HttpPost("{realmName}/user")]
     public async Task<IActionResult> CreateUser(string realmName, [FromBody] CreateUserDto dto)
     {

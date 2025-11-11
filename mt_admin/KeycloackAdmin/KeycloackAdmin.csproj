@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Keycloak.Net.Core" Version="1.0.36" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.1.2" />
   </ItemGroup>
 
 </Project>

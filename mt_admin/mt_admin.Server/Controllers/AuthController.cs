@@ -21,7 +21,7 @@ namespace mt_admin.Server.Controllers
       var form = new Dictionary<string, string>
             {
                 { "grant_type", "password" },
-                { "client_id", _config.ClientId },
+                { "client_id", "pubclient" },
                 { "username", dto.Username },
                 { "password", dto.Password }
             };

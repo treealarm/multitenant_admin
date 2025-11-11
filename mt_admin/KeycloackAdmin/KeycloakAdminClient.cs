@@ -3,8 +3,10 @@ using Keycloak.Net.Models.Clients;
 using Keycloak.Net.Models.RealmsAdmin;
 using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
+using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace KeycloackAdmin
@@ -12,7 +14,6 @@ namespace KeycloackAdmin
   public class KeycloakAdminClient : IKeycloakAdminClient
   {
     private readonly KeycloakClient _client;
-
     public KeycloakAdminClient(string keycloakUrl, string adminUser, string adminPassword)
     {
       var keycloakRealm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? "master";
@@ -146,6 +147,32 @@ namespace KeycloackAdmin
       {
         return false;
       }
+    }
+
+    public async Task<RsaSecurityKey?> GetRealmPublicKeyAsync(string realm, string? kid = null)
+    {
+      // Получаем OpenID конфигурацию
+      var oidcConfig = await _client.GetOpenIDConfigurationAsync(realm);
+
+      using var http = new HttpClient();
+      var jwksJson = await http.GetStringAsync(oidcConfig.JwksUri);
+      var jwks = System.Text.Json.JsonSerializer.Deserialize<JsonWebKeySet>(jwksJson);
+
+      if (jwks == null || jwks.Keys == null || !jwks.Keys.Any())
+        return null;
+
+      // Ищем ключ по kid или берём первый
+      var key = kid != null
+          ? jwks.Keys.FirstOrDefault(k => k.Kid == kid)
+          : jwks.Keys.First();
+
+      if (key == null) return null;
+
+      return new RsaSecurityKey(new System.Security.Cryptography.RSAParameters
+      {
+        Modulus = Base64UrlEncoder.DecodeBytes(key.N),
+        Exponent = Base64UrlEncoder.DecodeBytes(key.E)
+      });
     }
 
 

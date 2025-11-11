@@ -1,10 +1,28 @@
 ﻿using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace KeycloackAdmin
 {
   public interface IKeycloakAdminClient
   {
+    public static RsaSecurityKey BuildRSAKey(string publicKeyJWT)
+    {
+      RSA rsa = RSA.Create();
+
+      if (!string.IsNullOrEmpty(publicKeyJWT))
+      {
+        rsa.ImportSubjectPublicKeyInfo(
+            source: Convert.FromBase64String(publicKeyJWT),
+            bytesRead: out _
+        );
+      }
+
+      var IssuerSigningKey = new RsaSecurityKey(rsa);
+
+      return IssuerSigningKey;
+    }
     Task<bool> CreateRealmAsync(string realmName);
     Task<bool> CreateUserAsync(string realmName, string username, string password);
     Task<bool> CreateRoleAsync(string realmName, string roleName);
@@ -13,5 +31,6 @@ namespace KeycloackAdmin
     Task<IEnumerable<User>> GetUsersAsync(string realmName);
     Task<IEnumerable<Role>> GetUserRolesAsync(string realmName, string userId);
     Task<bool> DeleteUserAsync(string realmName, string userId);
+    Task<RsaSecurityKey?> GetRealmPublicKeyAsync(string realm, string? kid = null);
   }
 }
