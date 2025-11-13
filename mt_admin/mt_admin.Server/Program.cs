@@ -2,8 +2,9 @@ using KeycloackAdmin;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
-using mt_admin.Server;
-using mt_admin.Server.Auth;
+using mt_admin;
+using Swashbuckle.AspNetCore.Filters;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
   options.SwaggerDoc("v1", new() { Title = "MT Admin API", Version = "v1" });
-
+  options.ExampleFilters();
   // Добавляем схему безопасности для Bearer токена
   options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
   {
@@ -63,7 +64,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
+builder.Services.AddSwaggerExamplesFromAssemblies(Assembly.GetEntryAssembly());
 
 ///Auth
 builder.Services.AddMemoryCache();
@@ -92,7 +93,10 @@ app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
-  app.UseSwaggerUI();
+  app.UseSwaggerUI(c =>
+  {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MT Admin API v1");
+  });
 }
 
 app.UseAuthorization();

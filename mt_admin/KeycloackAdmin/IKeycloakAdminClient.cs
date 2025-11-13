@@ -1,4 +1,5 @@
-﻿using Keycloak.Net.Models.Roles;
+﻿using Keycloak.Net.Core.Models.Root;
+using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
@@ -32,5 +33,6 @@ namespace KeycloackAdmin
     Task<IEnumerable<Role>> GetUserRolesAsync(string realmName, string userId);
     Task<bool> DeleteUserAsync(string realmName, string userId);
     Task<RsaSecurityKey?> GetRealmPublicKeyAsync(string realm, string? kid = null);
+    Task<Token> GetTokenAsync(string realm, string clientId, string username, string password);
   }
 }

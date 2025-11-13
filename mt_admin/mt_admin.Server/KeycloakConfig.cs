@@ -1,4 +1,4 @@
-﻿namespace mt_admin.Server
+﻿namespace mt_admin
 {
   public class KeycloakConfig
   {

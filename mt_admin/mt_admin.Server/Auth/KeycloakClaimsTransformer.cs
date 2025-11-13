@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 
-namespace mt_admin.Server.Auth
+namespace mt_admin
 {
   public class KeycloakClaimsTransformer : IClaimsTransformation
   {

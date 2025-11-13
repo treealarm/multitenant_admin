@@ -1,47 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using KeycloackAdmin;
+using Microsoft.AspNetCore.Mvc;
 
-namespace mt_admin.Server.Controllers
+namespace mt_admin
 {
   [ApiController]
   [Route("api/[controller]")]
   public class AuthController : ControllerBase
   {
-    private readonly HttpClient _http;
-    private readonly KeycloakConfig _config;
+    private readonly IKeycloakAdminClient _kcAdmin;
 
-    public AuthController(HttpClient http, KeycloakConfig config)
+    public AuthController(IKeycloakAdminClient kcAdmin)
     {
-      _http = http;
-      _config = config;
+      _kcAdmin = kcAdmin;
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-      var form = new Dictionary<string, string>
-            {
-                { "grant_type", "password" },
-                { "client_id", "pubclient" },
-                { "username", dto.Username },
-                { "password", dto.Password }
-            };
-
-      // Используем базовый URL из конфигурации + имя реалма из запроса
-      var url = $"{_config.Url}/realms/{dto.Realm}/protocol/openid-connect/token";
-
-      var response = await _http.PostAsync(url, new FormUrlEncodedContent(form));
-      var content = await response.Content.ReadAsStringAsync();
-
-      if (!response.IsSuccessStatusCode)
+      try
       {
-        return StatusCode((int)response.StatusCode, content);
+        var content = await _kcAdmin.GetTokenAsync(dto.Realm, "pubclient", dto.Username, dto.Password);
+        return Ok(content);
       }
-
-      // Можно сразу вернуть JSON токена
-      return Content(content, "application/json");
+      catch (Exception ex)
+      {
+        return StatusCode(500, ex.Message);
+      }
     }
   }
-
-  public record LoginDto(string Realm, string Username, string Password);
-
 }

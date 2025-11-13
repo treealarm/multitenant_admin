@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace mt_admin.Server.Auth
+namespace mt_admin
 {
   public class KeycloakTokenValidatorService : IKeycloakTokenValidator
   {

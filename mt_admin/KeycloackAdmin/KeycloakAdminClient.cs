@@ -1,4 +1,6 @@
-﻿using Keycloak.Net;
+﻿using Flurl.Http;
+using Keycloak.Net;
+using Keycloak.Net.Core.Models.Root;
 using Keycloak.Net.Models.Clients;
 using Keycloak.Net.Models.RealmsAdmin;
 using Keycloak.Net.Models.Roles;
@@ -7,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KeycloackAdmin
@@ -20,6 +23,7 @@ namespace KeycloackAdmin
 
       var options = new KeycloakOptions(authenticationRealm: keycloakRealm);
       _client = new KeycloakClient(keycloakUrl, adminUser, adminPassword, options);
+
     }
 
     // Создание realm
@@ -175,6 +179,18 @@ namespace KeycloackAdmin
       });
     }
 
+    public async Task<Token> GetTokenAsync(string realm, string clientId, string username, string password)
+    {
+        // Получаем токен от Keycloak через готовый метод
+        var token = await _client.GetTokenWithResourceOwnerPasswordCredentialsAsync(
+            realm,
+            clientId,
+            username,
+            password,
+            string.Empty
+        );
 
+        return token;
+    }
   }
 }

@@ -1,4 +1,4 @@
-﻿namespace mt_admin.Server.Auth
+﻿namespace mt_admin
 {
   public interface IKeycloakTokenValidator
   {
