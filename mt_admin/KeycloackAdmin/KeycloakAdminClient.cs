@@ -42,19 +42,120 @@ namespace KeycloackAdmin
       }
       catch
       {
-        
+
       }
-      
+
 
       var realm = new Realm
       {
         Id = realmName,
         _Realm = realmName,
         Enabled = true,
-        DefaultRoles = new[] { "offline_access", "uma_authorization", "admin","anon","user", "default-roles-"+ realmName }
+        DefaultRoles = new[] { "offline_access", "uma_authorization", "admin", "anon", "user", "default-roles-" + realmName }
       };
 
-      return await _client.ImportRealmAsync(realmName, realm);
+      var imported = await _client.ImportRealmAsync(realmName, realm);
+      if (!imported)
+        return false;
+
+      var user_created = await CreateUserAsync(realmName, "myuser", "myuser");
+      if (!user_created)
+        return false;
+
+      var pubClient = new Client
+      {
+        ClientId = "pubclient",
+        Name = "pubclient",
+        Enabled = true,
+        PublicClient = true,
+        Protocol = "openid-connect",
+        RedirectUris = new[] { "*" },
+        WebOrigins = new object[] { "*" },
+        StandardFlowEnabled = true,
+        DirectAccessGrantsEnabled = true,
+        ServiceAccountsEnabled = false,
+        FrontChannelLogout = true,
+        FullScopeAllowed = true,
+
+        Attributes = new Dictionary<string, object>
+        {
+            { "post.logout.redirect.uris", "*" },
+            { "use.refresh.tokens", "true" },
+            { "oauth2.device.authorization.grant.enabled", "false" },
+            { "client_credentials.use_refresh_token", "false" },
+            { "require.pushed.authorization.requests", "false" },
+        },
+
+        DefaultClientScopes = new[]
+        {
+            "web-origins", "acr", "profile", "roles", "basic", "email"
+        },
+
+        OptionalClientScopes = new[]
+          {
+            "address", "phone", "offline_access", "microprofile-jwt"
+          },
+
+        ProtocolMappers = new[]
+          {
+        // 🔸 Включает realm roles в access_token
+        new ClientProtocolMapper
+        {
+            Name = "realm roles",
+            Protocol = "openid-connect",
+            ProtocolMapper = "oidc-usermodel-realm-role-mapper",
+            ConsentRequired = false,
+            Config = new Dictionary<string, string>
+            {
+                { "multivalued", "true" },
+                { "userinfo.token.claim", "true" },
+                { "id.token.claim", "true" },
+                { "access.token.claim", "true" },
+                { "claim.name", "realm_access.roles" },
+                { "jsonType.label", "String" }
+            }
+        },
+
+        // 🔸 Включает client roles в access_token
+        new ClientProtocolMapper
+        {
+            Name = "client roles",
+            Protocol = "openid-connect",
+            ProtocolMapper = "oidc-usermodel-client-role-mapper",
+            ConsentRequired = false,
+            Config = new Dictionary<string, string>
+            {
+                { "multivalued", "true" },
+                { "userinfo.token.claim", "true" },
+                { "id.token.claim", "true" },
+                { "access.token.claim", "true" },
+                { "claim.name", "resource_access.${client_id}.roles" },
+                { "jsonType.label", "String" }
+            }
+        },
+
+        // 🔸 Добавляет username
+        new ClientProtocolMapper
+        {
+            Name = "username",
+            Protocol = "openid-connect",
+            ProtocolMapper = "oidc-usermodel-property-mapper",
+            ConsentRequired = false,
+            Config = new Dictionary<string, string>
+            {
+                { "userinfo.token.claim", "true" },
+                { "id.token.claim", "true" },
+                { "access.token.claim", "true" },
+                { "claim.name", "preferred_username" },
+                { "jsonType.label", "String" },
+                { "user.attribute", "username" }
+            }
+        }
+    }
+      };
+
+
+      return await _client.CreateClientAsync(realmName, pubClient);
     }
 
     // Создание роли
@@ -70,11 +171,11 @@ namespace KeycloackAdmin
           return false;
         }
       }
-      catch(Exception)
+      catch (Exception)
       {
 
       }
-      
+
 
       role = new Role { Name = roleName };
       return await _client.CreateRoleAsync(realmName, role);
@@ -90,11 +191,15 @@ namespace KeycloackAdmin
       user = new User
       {
         UserName = username,
+        FirstName = username,
+        LastName = username,
         Enabled = true,
         Credentials = new[]
           {
                     new Credentials { Type = "password", Value = password, Temporary = false }
-          }
+          },
+        EmailVerified = true,
+        Email = $"{username}@example.com"
       };
 
       return await _client.CreateUserAsync(realmName, user);
@@ -131,13 +236,13 @@ namespace KeycloackAdmin
     public async Task<IEnumerable<User>> GetUsersAsync(string realmName)
     {
       var users = await _client.GetUsersAsync(realmName);
-        return users ?? Enumerable.Empty<User>();
+      return users ?? Enumerable.Empty<User>();
     }
 
     public async Task<IEnumerable<Role>> GetUserRolesAsync(string realmName, string userId)
     {
       var roles = await _client.GetRealmRoleMappingsForUserAsync(realmName, userId);
-        return roles ?? Enumerable.Empty<Role>();
+      return roles ?? Enumerable.Empty<Role>();
     }
 
     public async Task<bool> DeleteUserAsync(string realmName, string userId)
@@ -181,16 +286,16 @@ namespace KeycloackAdmin
 
     public async Task<Token> GetTokenAsync(string realm, string clientId, string username, string password)
     {
-        // Получаем токен от Keycloak через готовый метод
-        var token = await _client.GetTokenWithResourceOwnerPasswordCredentialsAsync(
-            realm,
-            clientId,
-            username,
-            password,
-            string.Empty
-        );
+      // Получаем токен от Keycloak через готовый метод
+      var token = await _client.GetTokenWithResourceOwnerPasswordCredentialsAsync(
+          realm,
+          clientId,
+          username,
+          password,
+          string.Empty
+      );
 
-        return token;
+      return token;
     }
   }
 }

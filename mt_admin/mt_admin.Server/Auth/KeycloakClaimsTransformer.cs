@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Keycloak.Net.Models.RealmsAdmin;
+using Keycloak.Net.Models.Roles;
+using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -63,6 +65,14 @@ namespace mt_admin
           var realm = parts[1];
           claimsIdentity.AddClaim(new Claim("realm", realm));
         }
+      }
+
+      bool isMasterAdmin =
+        claimsIdentity.HasClaim(c => c.Type == "iss" && c.Value.Contains("/realms/master")) &&
+        claimsIdentity.HasClaim(c => c.Type == "azp" && c.Value == "admin-cli");
+      if (isMasterAdmin)
+      {
+        claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "create-realm"));
       }
 
       return Task.FromResult(principal);
