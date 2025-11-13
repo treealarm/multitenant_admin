@@ -1,4 +1,4 @@
-using KeycloackAdmin;
+п»їusing KeycloackAdmin;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -36,7 +36,7 @@ builder.Services.AddSwaggerGen(options =>
 {
   options.SwaggerDoc("v1", new() { Title = "MT Admin API", Version = "v1" });
   options.ExampleFilters();
-  // Добавляем схему безопасности для Bearer токена
+  // Р”РѕР±Р°РІР»СЏРµРј СЃС…РµРјСѓ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё РґР»СЏ Bearer С‚РѕРєРµРЅР°
   options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
   {
     Name = "Authorization",
@@ -47,7 +47,7 @@ builder.Services.AddSwaggerGen(options =>
     Description = "Input: Bearer {token}"
   });
 
-  // Добавляем требование безопасности глобально
+  // Р”РѕР±Р°РІР»СЏРµРј С‚СЂРµР±РѕРІР°РЅРёРµ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё РіР»РѕР±Р°Р»СЊРЅРѕ
   options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -76,7 +76,7 @@ builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, DynamicJwtBea
 
 builder.Services
   .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-  .AddJwtBearer(); // без параметров — всё задаётся через DynamicJwtBearerOptions
+  .AddJwtBearer(); // Р±РµР· РїР°СЂР°РјРµС‚СЂРѕРІ вЂ” РІСЃС‘ Р·Р°РґР°С‘С‚СЃСЏ С‡РµСЂРµР· DynamicJwtBearerOptions
 
 builder.Services.AddAuthorization();
 
@@ -98,8 +98,6 @@ if (app.Environment.IsDevelopment())
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "MT Admin API v1");
   });
 }
-
-app.UseAuthorization();
 
 app.MapControllers();
 
