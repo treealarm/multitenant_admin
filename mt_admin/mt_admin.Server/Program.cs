@@ -23,6 +23,8 @@ var kcConfig = new KeycloakConfig
 builder.Services.AddSingleton(kcConfig);
 builder.Services.AddHttpClient();
 
+builder.Services.AddHostedService<InitHostedService>();
+
 builder.Services.AddSingleton<IKeycloakAdminClient>(sp =>
     new KeycloakAdminClient(
         keycloakUrl: kcConfig.Url!,
@@ -44,7 +46,7 @@ builder.Services.AddSwaggerGen(options =>
     Scheme = "bearer",
     BearerFormat = "JWT",
     In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-    Description = "Input: Bearer {token}"
+    Description = "Input: <Bearer> {token}"
   });
 
   // Добавляем требование безопасности глобально

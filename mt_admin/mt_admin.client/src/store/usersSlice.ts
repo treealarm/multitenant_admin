@@ -23,7 +23,8 @@ const initialState: UsersState = {
 export const fetchUsers = createAsyncThunk<User[], string>(
   "users/fetch",
   async (realmName) => {
-    const res = await authFetch(`/api/KeycloakAdmin/${realmName}`);
+    const res = await authFetch(`/api/KeycloakAdmin/GetUsersByRealm?realm=${encodeURIComponent(realmName)}`);
+
     const text = await res.text();
 
     if (!res.ok) throw new Error(`Failed to load users (${res.status})`);
@@ -32,15 +33,15 @@ export const fetchUsers = createAsyncThunk<User[], string>(
 );
 
 // Добавляем пользователя
-export const addUser = createAsyncThunk<void, { realm: string; username: string; password: string }>(
+export const addUser = createAsyncThunk<void, { realmname: string; username: string; password: string }>(
   "users/add",
-  async ({ realm, username, password }) => {
-    const res = await authFetch(`/api/KeycloakAdmin/${realm}/user`, {
+  async ({ realmname, username, password }) => {
+    const res = await authFetch(`/api/KeycloakAdmin/CreateUser`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json", // <- важно
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, realmname: realmname }),
     }
 
     );
@@ -55,11 +56,15 @@ export const addUser = createAsyncThunk<void, { realm: string; username: string;
 // Удаление пользователя (если у Keycloak API есть DELETE)
 export const deleteUser = createAsyncThunk<
   void,
-  { realm: string; id: string }
+  { realmname: string; username: string }
   >
-  ("users/delete", async ({ realm, id }) => {
-  const res = await authFetch(`/api/KeycloakAdmin/${realm}/user/${id}`, {
-    method: "DELETE",
+  ("users/delete", async ({ username, realmname }) => {
+    const res = await authFetch(`/api/KeycloakAdmin/DeleteUser`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json", // <- важно
+      },
+      body: JSON.stringify({ username, realmname }),
   });
 
   if (!res.ok) {

@@ -29,22 +29,10 @@ namespace KeycloackAdmin
     // Создание realm
     public async Task<bool> CreateRealmAsync(string realmName)
     {
-      Realm? existing = null;
-
-      try
-      {
-        existing = await _client.GetRealmAsync(realmName);
-
-        if (existing != null)
-        {
-          return false;
-        }
+     if (await IsRealmExistAsync(realmName))
+      {  
+        return false; 
       }
-      catch
-      {
-
-      }
-
 
       var realm = new Realm
       {
@@ -239,17 +227,29 @@ namespace KeycloackAdmin
       return users ?? Enumerable.Empty<User>();
     }
 
-    public async Task<IEnumerable<Role>> GetUserRolesAsync(string realmName, string userId)
+    public async Task<IEnumerable<Role>> GetUserRolesAsync(string realmName, string userName)
     {
-      var roles = await _client.GetRealmRoleMappingsForUserAsync(realmName, userId);
+      var users = await _client.GetUsersAsync(realmName, username: userName);
+
+      var user = users?.Where(u => u.UserName == userName).FirstOrDefault();
+      if (user == null) 
+        return Enumerable.Empty<Role>();
+
+      var roles = await _client.GetRealmRoleMappingsForUserAsync(realmName, user.Id);
       return roles ?? Enumerable.Empty<Role>();
     }
 
-    public async Task<bool> DeleteUserAsync(string realmName, string userId)
+    public async Task<bool> DeleteUserAsync(string realmName, string userName)
     {
       try
       {
-        await _client.DeleteUserAsync(realmName, userId);
+        var users = await _client.GetUsersAsync(realmName, username: userName);
+
+        var user = users?.Where(u => u.UserName == userName).FirstOrDefault();
+        if (user == null)
+          return false;
+
+        await _client.DeleteUserAsync(realmName, user.Id);
         return true;
       }
       catch (Exception)
@@ -296,6 +296,26 @@ namespace KeycloackAdmin
       );
 
       return token;
+    }
+
+    public async Task<bool> IsRealmExistAsync(string realmName)
+    {
+      Realm? existing = null;
+
+      try
+      {
+        existing = await _client.GetRealmAsync(realmName);
+
+        if (existing != null)
+        {
+          return true;
+        }
+      }
+      catch
+      {
+
+      }
+      return false;
     }
   }
 }

@@ -1,23 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    List,
+    ListItem,
+    ListItemText,
+    TextField,
+    Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store";
-import { fetchUsers, addUser, deleteUser } from "../store/usersSlice";
-import {
-  CircularProgress,
-  Container,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Button,
-  TextField,
-  Box,
-} from "@mui/material";
+import { addUser, deleteUser, fetchUsers } from "../store/usersSlice";
 
 export function UsersList({ realm }: { realm: string }) {
   const dispatch = useAppDispatch();
   const { items, loading, error } = useAppSelector((state: any) => state.users);
 
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
   const [newUser, setNewUser] = useState({ username: "", password: "" });
 
   // Загружаем пользователей при монтировании и при смене realm
@@ -25,14 +26,14 @@ export function UsersList({ realm }: { realm: string }) {
     dispatch(fetchUsers(realm));
   }, [realm, dispatch]);
 
-  const handleSelect = (id: string) => {
-    setSelectedUserId(id === selectedUserId ? null : id);
+  const handleSelect = (userName: string) => {
+    setSelectedUserName(userName === selectedUserName ? null : userName);
   };
 
   const handleAdd = async () => {
     if (newUser.username && newUser.password) {
       try {
-        await dispatch(addUser({ realm, username: newUser.username, password: newUser.password })).unwrap();
+        await dispatch(addUser({ realmname: realm, username: newUser.username, password: newUser.password })).unwrap();
         setNewUser({ username: "", password: "" });
         dispatch(fetchUsers(realm)); // обновляем список
       } catch (err: any) {
@@ -44,12 +45,12 @@ export function UsersList({ realm }: { realm: string }) {
   };
 
   const handleDelete = async () => {
-    if (selectedUserId) {
+    if (selectedUserName) {
       if (!confirm("Are you sure you want to delete this user?")) return;
 
       try {
-        await dispatch(deleteUser({ realm, id: selectedUserId })).unwrap();
-        setSelectedUserId(null);
+        await dispatch(deleteUser({ realmname: realm, username: selectedUserName })).unwrap();
+        setSelectedUserName(null);
         dispatch(fetchUsers(realm)); // обновляем список
       } catch (err: any) {
         alert(err.message);
@@ -69,9 +70,9 @@ export function UsersList({ realm }: { realm: string }) {
       <List>
         {items.map((u: any) => (
           <ListItem
-            key={u.id}
-            selected={u.id === selectedUserId}
-            onClick={() => handleSelect(u.id)}
+            key={u.username}
+            selected={u.username === selectedUserName}
+            onClick={() => handleSelect(u.username)}
             sx={{ cursor: "pointer" }}
           >
             <ListItemText primary={u.username} secondary={u.email} />
@@ -101,9 +102,10 @@ export function UsersList({ realm }: { realm: string }) {
           variant="outlined"
           color="error"
           onClick={handleDelete}
-          disabled={!selectedUserId}
+          disabled={!selectedUserName}
+          sx={{ textTransform: "none" }} 
         >
-          Delete Selected User
+          Delete Selected User {selectedUserName}
         </Button>
       </Box>
     </Container>
