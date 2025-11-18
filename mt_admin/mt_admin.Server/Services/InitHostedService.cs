@@ -17,7 +17,7 @@ namespace mt_admin
       _serviceProvider = serviceProvider;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
       _logger.LogInformation("InitHostedService is starting...");
 
@@ -26,6 +26,7 @@ namespace mt_admin
       _backgroundTask = Task.Run(() => DoWorkAsync(_cts.Token), _cts.Token);
 
       _logger.LogInformation("InitHostedService started.");
+      return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -56,13 +57,16 @@ namespace mt_admin
         using (var scope = _serviceProvider.CreateScope())
         {
           var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
-          if (await kcAdmin.IsRealmExistAsync("customers") && _cts != null)
+          if (await kcAdmin.IsRealmExistAsync(RegisterUserDto.Realm) && _cts != null)
           {
             await _cts.CancelAsync();
           }
           else
           {
-            await kcAdmin.CreateRealmAsync("customers");
+            if(await kcAdmin.CreateRealmAsync(RegisterUserDto.Realm))
+            {
+              await kcAdmin.CreateUserAsync(RegisterUserDto.Realm, "myuser", "myuser", string.Empty);
+            }
           }
         }
       }

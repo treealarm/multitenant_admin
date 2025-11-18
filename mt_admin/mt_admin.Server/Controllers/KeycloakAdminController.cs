@@ -56,7 +56,7 @@ namespace mt_admin
     [Route("CreateUser")]
     public async Task<IActionResult> CreateUser(CreateUserDto dto)
     {
-      var success = await _kcAdmin.CreateUserAsync(dto.RealmName, dto.Username, dto.Password);
+      var success = await _kcAdmin.CreateUserAsync(dto.RealmName, dto.Username, dto.Password, dto.Email);
       if (!success) 
         return 
           Conflict($"User '{dto.Username}' already exists in realm '{dto.RealmName}'.");
@@ -122,6 +122,39 @@ namespace mt_admin
       if (!success)
         return NotFound($"User with ID '{dto.UserName}' not found in realm '{dto.RealmName}'.");
       return Ok($"User with ID '{dto.UserName}' has been deleted from realm '{dto.RealmName}'.");
+    }
+
+    [AllowAnonymous]
+    [HttpPost("Register")]
+    public async Task<IActionResult> Register(RegisterUserDto dto)
+    {
+      
+
+      // Проверяем, нет ли пользователя с таким email уже
+      var existingUsers = await _kcAdmin.GetUsersAsync(RegisterUserDto.Realm);
+      
+      existingUsers = existingUsers.Where(u=>u.Email == dto.Email);
+
+      if (existingUsers.Any())
+      {
+        return Conflict($"User with email '{dto.Email}' already exists.");
+      }
+
+      // Создаём пользователя
+      var createSuccess = await _kcAdmin.CreateUserAsync(RegisterUserDto.Realm, dto.Username, dto.Password, dto.Email);
+      if (!createSuccess)
+      {
+        return StatusCode(500, "Failed to create user. Perhaps the username already exists.");
+      }
+
+      // Назначаем роль (например, tenant_admin) — если используете роли
+      await _kcAdmin.AssignRolesToUserAsync(
+          RegisterUserDto.Realm,
+          dto.Username,
+          new[] { new Role { Name = "tenant_admin" } }
+      );
+
+      return Ok($"User '{dto.Username}' has been registered and assigned 'tenant_admin' role.");
     }
 
 

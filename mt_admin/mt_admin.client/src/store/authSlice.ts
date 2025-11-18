@@ -14,7 +14,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  realm: null,
+  realm: localStorage.getItem("realm"),
   token: localStorage.getItem("token"),
   loading: false,
 };

@@ -46,9 +46,9 @@ namespace KeycloackAdmin
       if (!imported)
         return false;
 
-      var user_created = await CreateUserAsync(realmName, "myuser", "myuser");
-      if (!user_created)
-        return false;
+      //var user_created = await CreateUserAsync(realmName, "myuser", "myuser");
+      //if (!user_created)
+      //  return false;
 
       var pubClient = new Client
       {
@@ -169,7 +169,7 @@ namespace KeycloackAdmin
       return await _client.CreateRoleAsync(realmName, role);
     }
 
-    public async Task<bool> CreateUserAsync(string realmName, string username, string password)
+    public async Task<bool> CreateUserAsync(string realmName, string username, string password, string email)
     {
       var users = await _client.GetUsersAsync(realmName, username: username);
 
@@ -187,7 +187,7 @@ namespace KeycloackAdmin
                     new Credentials { Type = "password", Value = password, Temporary = false }
           },
         EmailVerified = true,
-        Email = $"{username}@example.com"
+        Email = string.IsNullOrEmpty(email) ? $"{username}@example.com": email
       };
 
       return await _client.CreateUserAsync(realmName, user);
