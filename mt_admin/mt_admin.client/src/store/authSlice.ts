@@ -9,6 +9,7 @@ interface LoginDto {
 interface AuthState {
   realm: string | null;
   token: string | null;
+  refresh_token: string | null;
   loading: boolean;
   error?: string;
 }
@@ -16,11 +17,12 @@ interface AuthState {
 const initialState: AuthState = {
   realm: localStorage.getItem("realm"),
   token: localStorage.getItem("token"),
+  refresh_token: localStorage.getItem("refresh_token"),
   loading: false,
 };
 
 export const login = createAsyncThunk<
-  { realm: string; token: string },
+  { realm: string; token: string; refresh_token:string },
   LoginDto
 >("auth/login", async ({ realm, username, password }) => {
   const res = await fetch("/api/Auth/login", {
@@ -37,11 +39,47 @@ export const login = createAsyncThunk<
 
   const data = JSON.parse(text);
   const token = data.access_token;
+  const refresh_token = data.refresh_token;
   localStorage.setItem("token", token);
   localStorage.setItem("realm", realm);
+  localStorage.setItem("refresh_token", refresh_token);
 
-  return { realm, token };
+  return { realm, token , refresh_token};
 });
+
+export const refreshToken = createAsyncThunk<{ token: string }, void>(
+  "auth/refresh",
+  async () => {
+    const refresh = localStorage.getItem("refresh_token");
+    const res = await fetch("/api/Auth/Refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refresh }),
+    });
+    if (!res.ok) throw new Error("Cannot refresh token");
+    const data = await res.json();
+    localStorage.setItem("token", data.access_token);
+    return { token: data.access_token };
+  }
+);
+
+export const validateToken = createAsyncThunk<void, void>(
+  "auth/validate",
+  async (_, { dispatch }) => {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token");
+
+    const res = await fetch("/api/Auth/ValidateToken", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.status === 401) {
+      dispatch(logout());
+      throw new Error("Token expired or invalid");
+    }
+  }
+);
+
 
 const authSlice = createSlice({
   name: "auth",
@@ -52,13 +90,16 @@ const authSlice = createSlice({
       state.token = null;
       localStorage.removeItem("token");
       localStorage.removeItem("realm");
+      localStorage.removeItem("refresh_token");
     },
     restoreSession(state) {
       const savedToken = localStorage.getItem("token");
       const savedRealm = localStorage.getItem("realm");
+      const savedRefreshToken = localStorage.getItem("refresh_token");
       if (savedToken && savedRealm) {
         state.token = savedToken;
         state.realm = savedRealm;
+        state.refresh_token = savedRefreshToken;
       }
     },
   },
@@ -72,6 +113,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.realm = action.payload.realm;
         state.token = action.payload.token;
+        state.refresh_token = action.payload.refresh_token;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;

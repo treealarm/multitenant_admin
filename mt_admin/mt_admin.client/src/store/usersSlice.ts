@@ -73,6 +73,26 @@ export const deleteUser = createAsyncThunk<
   }
 });
 
+// Регистрируем пользователя в customers realm
+export const registerUser = createAsyncThunk<
+  void,
+  { username: string; email: string; password: string }
+>("users/register", async ({ username, email, password }) => {
+  const res = await fetch("/api/KeycloakAdmin/Register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, email, password }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to register user: ${text}`);
+  }
+  // ничего не возвращаем
+});
+
 
 const usersSlice = createSlice({
   name: "users",
@@ -80,6 +100,19 @@ const usersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // registerUser
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = undefined;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.loading = false;
+        // после успешной регистрации можно отображать успех, но тут ничего не меняем
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
       // fetchUsers
       .addCase(fetchUsers.pending, (state) => {
         state.loading = true;

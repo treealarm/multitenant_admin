@@ -1,4 +1,5 @@
 ﻿using KeycloackAdmin;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static System.Net.WebRequestMethods;
 
@@ -19,37 +20,6 @@ namespace mt_admin
       _config = config;
     }
 
-    [HttpPost("login_http")]
-    public async Task<IActionResult> Login1([FromBody] LoginDto dto)
-    {
-      var client_id = "pubclient";
-      if (dto.Realm == "master")
-      {
-        client_id = "admin-cli";
-      }
-      var form = new Dictionary<string, string>
-            {
-                { "grant_type", "password" },
-                { "client_id", client_id },
-                { "username", dto.Username },
-                { "password", dto.Password }
-            };
-
-      // Используем базовый URL из конфигурации + имя реалма из запроса
-      var url = $"{_config.Url}/realms/{dto.Realm}/protocol/openid-connect/token";
-
-      var response = await _http.PostAsync(url, new FormUrlEncodedContent(form));
-      var content = await response.Content.ReadAsStringAsync();
-
-      if (!response.IsSuccessStatusCode)
-      {
-        return StatusCode((int)response.StatusCode, content);
-      }
-
-      // Можно сразу вернуть JSON токена
-      return Content(content, "application/json");
-    }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
@@ -68,5 +38,18 @@ namespace mt_admin
         return StatusCode(500, ex.Message);
       }
     }
+    [HttpGet("ValidateToken")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ValidateToken([FromHeader(Name = "Authorization")] string authHeader)
+    {
+      if (string.IsNullOrEmpty(authHeader)) return Unauthorized();
+
+      var token = authHeader.Replace("Bearer ", "");
+      var valid = await _kcAdmin.IsTokenValid(token); // метод проверки токена через Keycloak или внутреннюю логику
+      if (!valid) return Unauthorized();
+
+      return Ok();
+    }
+
   }
 }

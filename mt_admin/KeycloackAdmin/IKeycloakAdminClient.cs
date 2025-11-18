@@ -35,5 +35,7 @@ namespace KeycloackAdmin
     Task<bool> DeleteUserAsync(string realmName, string userТфьу);
     Task<RsaSecurityKey?> GetRealmPublicKeyAsync(string realm, string? kid = null);
     Task<Token> GetTokenAsync(string realm, string clientId, string username, string password);
+
+    Task<bool> IsTokenValid(string token);
   }
 }

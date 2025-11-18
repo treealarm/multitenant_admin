@@ -7,6 +7,7 @@ using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
@@ -316,6 +317,24 @@ namespace KeycloackAdmin
 
       }
       return false;
+    }
+
+    public async Task<bool> IsTokenValid(string token)
+    {
+      if (string.IsNullOrEmpty(token))
+        return false;
+
+      var handler = new JwtSecurityTokenHandler();
+      try
+      {
+        var jwt = handler.ReadJwtToken(token);
+        var exp = jwt.ValidTo; // UTC
+        return exp > DateTime.UtcNow;
+      }
+      catch
+      {
+        return false; // токен невалидный
+      }
     }
   }
 }

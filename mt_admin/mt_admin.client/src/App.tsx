@@ -1,24 +1,62 @@
-import { useAppSelector } from "./store";
-import { useState } from "react";
-import { LoginForm } from "./components/LoginForm";
-import { UsersList } from "./components/UsersList";
-import { Container } from "@mui/material";
+import React, { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "./store";
+import { validateToken, logout } from "./store/authSlice";
+import { Routes, Route, Navigate, useNavigate, BrowserRouter } from "react-router-dom";
+import { createTheme, ThemeProvider, Container, Button } from "@mui/material";
 
-export default function App() {
+import { LoginForm } from "./components/LoginForm";
+import { RegisterForm } from "./components/RegisterForm";
+import { UsersList } from "./components/UsersList";
+import { AuthPage } from "./components/AuthPage";
+
+// Настройка темы MUI
+const theme = createTheme({
+  spacing: 3,
+  typography: {
+    button: { textTransform: "none" },
+  },
+  palette: {
+    mode: "light",
+    primary: { main: "#3f51b5" },
+    secondary: { main: "#f50057" },
+  },
+});
+
+function AppRoutes() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { token, realm } = useAppSelector((s) => s.auth);
 
-  // Если токена нет или realm пустой — показываем логин
-  if (!token || !realm) {
-    return (
-      <Container sx={{ mt: 4 }}>
-        <LoginForm />
-      </Container>
-    );
-  }
+  useEffect(() => {
+    if (token) {
+      dispatch(validateToken())
+        .unwrap()
+        .catch(() => {
+          dispatch(logout());
+          navigate("/login");
+        });
+    }
+  }, [token, dispatch, navigate]);
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <UsersList realm={realm} />
-    </Container>
+    <Routes>
+      <Route
+        path="/"
+        element={token && realm ? <UsersList realm={realm} /> : <Navigate to="/auth" replace />}
+      />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/register" element={<RegisterForm />} />
+      <Route path="/login" element={<LoginForm />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
