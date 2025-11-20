@@ -21,7 +21,7 @@
   }
 
 
-  public class AssignRolesDto
+  public class RolesDto
   {
     public string UserName { get; set; } = string.Empty;
     public string RealmName { get; set; } = string.Empty;

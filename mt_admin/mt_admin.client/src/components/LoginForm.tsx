@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TextField, Button, Box } from "@mui/material";
 import { useAppDispatch } from "../store";
 import { login } from "../store/authSlice";
+import { useNavigate } from "react-router-dom";
 
 export  function LoginForm() {
   const dispatch = useAppDispatch();
@@ -9,6 +10,8 @@ export  function LoginForm() {
   const [password, setPassword] = useState("");
   const [realm, setRealm] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
@@ -20,6 +23,7 @@ export  function LoginForm() {
         setError(resultAction.payload as string);
       } else {
         setError(null);
+        navigate("/");
       }
     } catch (err: any) {
       setError(err.message);

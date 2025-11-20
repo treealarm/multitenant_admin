@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./store";
 import { validateToken, logout } from "./store/authSlice";
 import { Routes, Route, Navigate, useNavigate, BrowserRouter } from "react-router-dom";
-import { createTheme, ThemeProvider, Container, Button } from "@mui/material";
+import { createTheme, ThemeProvider, Container } from "@mui/material";
+import { AppHeader } from "./components/AppHeader";
 
 import { LoginForm } from "./components/LoginForm";
 import { RegisterForm } from "./components/RegisterForm";
 import { UsersList } from "./components/UsersList";
-import { AuthPage } from "./components/AuthPage";
 
 // Настройка темы MUI
 const theme = createTheme({
@@ -44,7 +44,6 @@ function AppRoutes() {
         path="/"
         element={token && realm ? <UsersList realm={realm} /> : <Navigate to="/auth" replace />}
       />
-      <Route path="/auth" element={<AuthPage />} />
       <Route path="/register" element={<RegisterForm />} />
       <Route path="/login" element={<LoginForm />} />
     </Routes>
@@ -55,8 +54,12 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
-        <AppRoutes />
+        <AppHeader />  {/* тулбар будет сверху на всех страницах */}
+        <Container sx={{ mt: 4 }}>
+          <AppRoutes />
+        </Container>
       </BrowserRouter>
     </ThemeProvider>
   );
 }
+

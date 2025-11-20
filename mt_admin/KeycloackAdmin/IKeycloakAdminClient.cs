@@ -26,6 +26,7 @@ namespace KeycloackAdmin
     }
     Task<bool> IsRealmExistAsync(string realmName);
     Task<bool> CreateRealmAsync(string realmName);
+    Task<bool> AddRealmToCustomerAsync(string realmName, string customerUserName, string customerRealmName);
     Task<bool> CreateUserAsync(string realmName, string username, string password, string email);
     Task<bool> CreateRoleAsync(string realmName, string roleName);
     Task<bool> AssignRolesToUserAsync(string realmName, string username, IEnumerable<Role> roles);
@@ -37,5 +38,7 @@ namespace KeycloackAdmin
     Task<Token> GetTokenAsync(string realm, string clientId, string username, string password);
 
     Task<bool> IsTokenValid(string token);
+
+    Task<IEnumerable<Keycloak.Net.Models.Components.Component>> GetRealmComponents(string realm);
   }
 }

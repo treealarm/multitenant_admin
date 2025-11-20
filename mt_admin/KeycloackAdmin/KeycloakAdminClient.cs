@@ -10,6 +10,8 @@ using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +27,38 @@ namespace KeycloackAdmin
       var options = new KeycloakOptions(authenticationRealm: keycloakRealm);
       _client = new KeycloakClient(keycloakUrl, adminUser, adminPassword, options);
 
+    }
+
+    public async Task<IEnumerable<Keycloak.Net.Models.Components.Component>> GetRealmComponents(string realm)
+    {
+      // 1. Получаем компонент UserProfileProvider
+      var components = await _client.GetComponentsAsync(
+          realm
+      );
+
+      return components;
+    }
+
+
+    public async Task<bool> AddRealmToCustomerAsync(string realmName, string customerUserName, string customerRealmName)
+    {
+      var users = await _client.GetUsersAsync(customerRealmName, username: customerUserName);
+      var user = users?.FirstOrDefault();
+      if (user == null) return false;
+
+      if (user.Attributes == null)
+        user.Attributes = new Dictionary<string, IEnumerable<string>>();
+
+      if (!user.Attributes.TryGetValue("realmsOwned", out var realms))
+        realms = Array.Empty<string>();
+
+      var updated = realms.ToList();
+      if (!updated.Contains(realmName))
+        updated.Add(realmName);
+
+      user.Attributes["realmsOwned"] = updated;
+
+      return await _client.UpdateUserAsync(customerRealmName, user.Id, user);
     }
 
     // Создание realm

@@ -19,7 +19,15 @@ namespace mt_admin
     {
       _kcAdmin = kcAdmin;
     }
-
+    private RolesDto GetWhoIAm()
+    {
+      return new RolesDto
+      {
+        RealmName = User.FindFirst("realm")?.Value ?? string.Empty,
+        UserName = User.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty,
+        Roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value)
+      };
+    }
 
     [HttpGet("whoami")]
     public IActionResult WhoAmI()
@@ -28,12 +36,7 @@ namespace mt_admin
       var realm = User.FindFirst("realm")?.Value;
       var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value);
 
-      return Ok(new
-      {
-        Username = username,
-        Realm = realm,
-        Roles = roles
-      });
+      return Ok(GetWhoIAm());
     }
     /// <summary>
     /// Create a new realm.
@@ -43,9 +46,32 @@ namespace mt_admin
     [Route("CreateRealm")]
     public async Task<IActionResult> CreateRealm(string realmName)
     {
+      var me = GetWhoIAm();
+
+      if (me.RealmName != RegisterUserDto.CustomerRealm)
+      {
+        return Conflict($"Realm '{me.RealmName}' is not alowed to create new realm.");
+      }
+      if (string.IsNullOrEmpty(me.UserName))
+      {
+        return Conflict($"User '{me.UserName}' is empty.");
+      }
+
       var success = await _kcAdmin.CreateRealmAsync(realmName);
-      if (!success) return Conflict($"Realm '{realmName}' already exists.");
+      if (!success) 
+        return Conflict($"Realm '{realmName}' already exists.");
+
+      success = await _kcAdmin.AddRealmToCustomerAsync(realmName, me.UserName, RegisterUserDto.CustomerRealm);
       return Ok($"Realm '{realmName}' has been created.");
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    [Route("GetRealmComponents")]
+    public async Task<IActionResult> GetRealmComponents(string realmName)
+    {
+      var components = await _kcAdmin.GetRealmComponents(realmName);
+      return Ok(components);
     }
 
     /// <summary>
@@ -80,7 +106,7 @@ namespace mt_admin
     /// </summary>
     [HttpPost]
     [Route("AssignRolesToUser")]
-    public async Task<IActionResult> AssignRolesToUser(AssignRolesDto dto)
+    public async Task<IActionResult> AssignRolesToUser(RolesDto dto)
     {
       if (dto == null || dto.Roles == null || !dto.Roles.Any())
         return BadRequest("No roles provided.");
@@ -131,7 +157,7 @@ namespace mt_admin
       
 
       // Проверяем, нет ли пользователя с таким email уже
-      var existingUsers = await _kcAdmin.GetUsersAsync(RegisterUserDto.Realm);
+      var existingUsers = await _kcAdmin.GetUsersAsync(RegisterUserDto.CustomerRealm);
       
       existingUsers = existingUsers.Where(u=>u.Email == dto.Email);
 
@@ -141,7 +167,7 @@ namespace mt_admin
       }
 
       // Создаём пользователя
-      var createSuccess = await _kcAdmin.CreateUserAsync(RegisterUserDto.Realm, dto.Username, dto.Password, dto.Email);
+      var createSuccess = await _kcAdmin.CreateUserAsync(RegisterUserDto.CustomerRealm, dto.Username, dto.Password, dto.Email);
       if (!createSuccess)
       {
         return StatusCode(500, "Failed to create user. Perhaps the username already exists.");
@@ -149,7 +175,7 @@ namespace mt_admin
 
       // Назначаем роль (например, tenant_admin) — если используете роли
       await _kcAdmin.AssignRolesToUserAsync(
-          RegisterUserDto.Realm,
+          RegisterUserDto.CustomerRealm,
           dto.Username,
           new[] { new Role { Name = "tenant_admin" } }
       );
