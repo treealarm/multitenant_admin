@@ -39,6 +39,7 @@ namespace KeycloackAdmin
 
     Task<bool> IsTokenValid(string token);
 
-    Task<IEnumerable<Keycloak.Net.Models.Components.Component>> GetRealmComponents(string realm);
+    Task<IEnumerable<ComponentEx>?> GetRealmComponents(string realm);
+    Task<bool> EnableRealmUnmanagetAttribute(string realm);
   }
 }

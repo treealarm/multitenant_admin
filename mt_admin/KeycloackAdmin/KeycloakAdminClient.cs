@@ -20,26 +20,214 @@ namespace KeycloackAdmin
   public class KeycloakAdminClient : IKeycloakAdminClient
   {
     private readonly KeycloakClient _client;
+    private readonly string _keycloakUrl;
+    private readonly string _adminUser;
+    private readonly string _adminPassword;
+    private readonly string _keycloakRealm;
     public KeycloakAdminClient(string keycloakUrl, string adminUser, string adminPassword)
     {
-      var keycloakRealm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? "master";
+      _keycloakUrl = keycloakUrl;
+      _adminUser = adminUser;
+      _adminPassword = adminPassword;
 
-      var options = new KeycloakOptions(authenticationRealm: keycloakRealm);
+      _keycloakRealm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? "master";
+
+      var options = new KeycloakOptions(authenticationRealm: _keycloakRealm);
       _client = new KeycloakClient(keycloakUrl, adminUser, adminPassword, options);
-
     }
 
-    public async Task<IEnumerable<Keycloak.Net.Models.Components.Component>> GetRealmComponents(string realm)
+    public async Task<IEnumerable<ComponentEx>?> GetRealmComponents(string realm)
     {
-      // 1. Получаем компонент UserProfileProvider
-      var components = await _client.GetComponentsAsync(
-          realm
-      );
+      var json = await KeycloakRawHelper.GetComponentRawJsonAsync(
+            keycloakUrl: _keycloakUrl,
+            admin_realm: _keycloakRealm,
+            realm: realm,
+            clientId: "admin-cli",
+            username: _adminUser,
+            password: _adminPassword
+        );
+
+      var components = JsonSerializer.Deserialize<IEnumerable<ComponentEx>>(json);
+
 
       return components;
     }
 
+    public async Task<bool> EnableRealmUnmanagetAttribute(string realm)
+    {
+      Realm? existing = null;
 
+      try
+      {
+        existing = await _client.GetRealmAsync(realm);
+
+        if (existing == null)
+        {
+          return false;
+        }
+      }
+      catch
+      {
+        return false;
+      }
+
+      var components = await GetRealmComponents(realm);
+      ComponentEx? component = null;
+      if (components != null)
+      {
+        component = components.Where(c => c.ProviderId == "declarative-user-profile").FirstOrDefault();
+
+        if (component != null)
+        {
+          var profileJsonString = component.Config["kc.user.profile.config"].FirstOrDefault();
+
+          if (profileJsonString != null)
+          {
+            // 2) Десериализуем внутрь UserProfileConfigRoot
+            var profileConfig = JsonSerializer.Deserialize<UserProfileConfigRoot>(profileJsonString);
+
+            // 3) Проверяем unmanagedAttributePolicy
+            var unmanagedEnabled = profileConfig?.UnmanagedAttributePolicy == "ENABLED";
+
+            if (unmanagedEnabled)
+            {
+              return true;
+            }
+          }
+        }        
+      }
+
+      var userProfileConfig = new UserProfileConfigRoot
+      {
+        Attributes = new List<UserProfileAttribute>
+        {
+        new UserProfileAttribute
+        {
+            Name = "username",
+            DisplayName = "${username}",
+            Multivalued = false,
+            Validations = new Dictionary<string, object>
+            {
+                ["length"] = new { min = 3, max = 255 },
+                ["username-prohibited-characters"] = new { },
+                ["up-username-not-idn-homograph"] = new { }
+            },
+            Permissions = new UserProfilePermissions
+            {
+                View = new() { "admin", "user" },
+                Edit = new() { "admin", "user" }
+            }
+        },
+
+        new UserProfileAttribute
+        {
+            Name = "email",
+            DisplayName = "${email}",
+            Multivalued = false,
+            Validations = new Dictionary<string, object>
+            {
+                ["email"] = new { },
+                ["length"] = new { max = 255 }
+            },
+            Required = new UserProfileRequired
+            {
+                Roles = new() { "user" }
+            },
+            Permissions = new UserProfilePermissions
+            {
+                View = new() { "admin", "user" },
+                Edit = new() { "admin", "user" }
+            }
+        },
+
+        new UserProfileAttribute
+        {
+            Name = "firstName",
+            DisplayName = "${firstName}",
+            Multivalued = false,
+            Validations = new Dictionary<string, object>
+            {
+                ["length"] = new { max = 255 },
+                ["person-name-prohibited-characters"] = new { },
+            },
+            Required = new UserProfileRequired
+            {
+                Roles = new() { "user" }
+            },
+            Permissions = new UserProfilePermissions
+            {
+                View = new() { "admin", "user" },
+                Edit = new() { "admin", "user" }
+            }
+        },
+
+        new UserProfileAttribute
+        {
+            Name = "lastName",
+            DisplayName = "${lastName}",
+            Multivalued = false,
+            Validations = new Dictionary<string, object>
+            {
+                ["length"] = new { max = 255 },
+                ["person-name-prohibited-characters"] = new { },
+            },
+            Required = new UserProfileRequired
+            {
+                Roles = new() { "user" }
+            },
+            Permissions = new UserProfilePermissions
+            {
+                View = new() { "admin", "user" },
+                Edit = new() { "admin", "user" }
+            }
+        }
+    },
+
+        Groups = new List<UserProfileGroup>
+        {
+            new UserProfileGroup
+            {
+                Name = "user-metadata",
+                DisplayHeader = "User metadata",
+                DisplayDescription = "Attributes, which refer to user metadata"
+            }
+        },
+
+          UnmanagedAttributePolicy = "ENABLED"
+        };
+
+      var profileJson = JsonSerializer.Serialize(
+    userProfileConfig,
+    new JsonSerializerOptions
+    {
+      WriteIndented = false
+    });
+
+
+      var cmp = new ComponentDynamicConfig
+      {
+        Name = "user-profile",
+        ProviderId = "declarative-user-profile",
+        ProviderType = "org.keycloak.userprofile.UserProfileProvider",
+        ParentId = existing?.Id!,
+        Config = new Dictionary<string, IEnumerable<string>>
+        {
+          ["kc.user.profile.config"] = new[] { profileJson }
+        }
+      };
+
+      if (component !=null )
+      {
+        component.Config = new Dictionary<string, IEnumerable<string>>
+        {
+          ["kc.user.profile.config"] = new[] { profileJson }
+        };
+        return await _client.UpdateComponentAsync(realm, component.Id, component);
+      }
+      var retval = await _client.CreateComponentAsync(realm, cmp);
+
+      return retval;
+    }
     public async Task<bool> AddRealmToCustomerAsync(string realmName, string customerUserName, string customerRealmName)
     {
       var users = await _client.GetUsersAsync(customerRealmName, username: customerUserName);
@@ -64,9 +252,9 @@ namespace KeycloackAdmin
     // Создание realm
     public async Task<bool> CreateRealmAsync(string realmName)
     {
-     if (await IsRealmExistAsync(realmName))
-      {  
-        return false; 
+      if (await IsRealmExistAsync(realmName))
+      {
+        return false;
       }
 
       var realm = new Realm
@@ -222,7 +410,7 @@ namespace KeycloackAdmin
                     new Credentials { Type = "password", Value = password, Temporary = false }
           },
         EmailVerified = true,
-        Email = string.IsNullOrEmpty(email) ? $"{username}@example.com": email
+        Email = string.IsNullOrEmpty(email) ? $"{username}@example.com" : email
       };
 
       return await _client.CreateUserAsync(realmName, user);
@@ -267,7 +455,7 @@ namespace KeycloackAdmin
       var users = await _client.GetUsersAsync(realmName, username: userName);
 
       var user = users?.Where(u => u.UserName == userName).FirstOrDefault();
-      if (user == null) 
+      if (user == null)
         return Enumerable.Empty<Role>();
 
       var roles = await _client.GetRealmRoleMappingsForUserAsync(realmName, user.Id);

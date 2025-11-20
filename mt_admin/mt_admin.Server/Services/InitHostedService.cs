@@ -57,7 +57,9 @@ namespace mt_admin
         using (var scope = _serviceProvider.CreateScope())
         {
           var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
-          if (await kcAdmin.IsRealmExistAsync(RegisterUserDto.CustomerRealm) && _cts != null)
+          if (await kcAdmin.IsRealmExistAsync(RegisterUserDto.CustomerRealm)
+            && await kcAdmin.EnableRealmUnmanagetAttribute(RegisterUserDto.CustomerRealm)
+            && _cts != null)
           {
             await _cts.CancelAsync();
           }
