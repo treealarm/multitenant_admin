@@ -57,17 +57,17 @@ namespace mt_admin
         using (var scope = _serviceProvider.CreateScope())
         {
           var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
-          if (await kcAdmin.IsRealmExistAsync(RegisterUserDto.CustomerRealm)
-            && await kcAdmin.EnableRealmUnmanagetAttribute(RegisterUserDto.CustomerRealm)
+          if (await kcAdmin.IsRealmExistAsync(Constants.CustomerRealm)
+            && await kcAdmin.EnableRealmUnmanagetAttribute(Constants.CustomerRealm)
             && _cts != null)
           {
             await _cts.CancelAsync();
           }
           else
           {
-            if(await kcAdmin.CreateRealmAsync(RegisterUserDto.CustomerRealm))
+            if(await kcAdmin.CreateRealmAsync(Constants.CustomerRealm))
             {
-              await kcAdmin.CreateUserAsync(RegisterUserDto.CustomerRealm, "myuser", "myuser", string.Empty);
+              await kcAdmin.CreateUserAsync(Constants.CustomerRealm, "myuser", "myuser", string.Empty);
             }
           }
         }

@@ -249,8 +249,38 @@ namespace KeycloackAdmin
       return await _client.UpdateUserAsync(customerRealmName, user.Id, user);
     }
 
-    // Создание realm
-    public async Task<bool> CreateRealmAsync(string realmName)
+    public async Task<bool> RemoveRealmFromCustomerAsync(string realmName, string customerUserName, string customerRealmName)
+    {
+      var users = await _client.GetUsersAsync(customerRealmName, username: customerUserName);
+      var user = users?.FirstOrDefault();
+      if (user == null) return false;
+
+      if (user.Attributes == null)
+        user.Attributes = new Dictionary<string, IEnumerable<string>>();
+
+      if (!user.Attributes.TryGetValue("realmsOwned", out var realms))
+        realms = Array.Empty<string>();
+
+      var updated = realms.ToList();
+      if (updated.Contains(realmName))
+        updated.Remove(realmName);
+
+      user.Attributes["realmsOwned"] = updated;
+
+      return await _client.UpdateUserAsync(customerRealmName, user.Id, user);
+    }
+
+    public async Task<bool> DeleteRealmAsync(string realmName)
+    {
+      if (await IsRealmExistAsync(realmName))
+      {
+        return false;
+      }
+
+      return await _client.DeleteRealmAsync(realmName);
+    }
+      // Создание realm
+      public async Task<bool> CreateRealmAsync(string realmName)
     {
       if (await IsRealmExistAsync(realmName))
       {

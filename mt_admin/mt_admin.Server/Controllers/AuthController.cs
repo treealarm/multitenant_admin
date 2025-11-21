@@ -21,7 +21,7 @@ namespace mt_admin
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto)
+    public async Task<IActionResult> Login(LoginDto dto)
     {
       try
       {
@@ -38,6 +38,21 @@ namespace mt_admin
         return StatusCode(500, ex.Message);
       }
     }
+
+    [HttpPost("customer_login")]
+    public async Task<IActionResult> CustomerLogin(CustomerLoginDto dto)
+    {
+      try
+      {
+        var client_id = "pubclient";
+        var content = await _kcAdmin.GetTokenAsync(Constants.CustomerRealm, client_id, dto.Username, dto.Password);
+        return Ok(content);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, ex.Message);
+      }
+    }
     [HttpGet("ValidateToken")]
     [AllowAnonymous]
     public async Task<IActionResult> ValidateToken([FromHeader(Name = "Authorization")] string authHeader)
@@ -46,7 +61,8 @@ namespace mt_admin
 
       var token = authHeader.Replace("Bearer ", "");
       var valid = await _kcAdmin.IsTokenValid(token); // метод проверки токена через Keycloak или внутреннюю логику
-      if (!valid) return Unauthorized();
+      if (!valid) 
+        return Unauthorized();
 
       return Ok();
     }

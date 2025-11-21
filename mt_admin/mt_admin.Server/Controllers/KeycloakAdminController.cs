@@ -3,6 +3,7 @@ using Keycloak.Net.Models.Roles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using mt_admin.Dto;
 using System.Security.Claims;
 
 namespace mt_admin
@@ -48,7 +49,7 @@ namespace mt_admin
     {
       var me = GetWhoIAm();
 
-      if (me.RealmName != RegisterUserDto.CustomerRealm)
+      if (me.RealmName != Constants.CustomerRealm)
       {
         return Conflict($"Realm '{me.RealmName}' is not alowed to create new realm.");
       }
@@ -61,9 +62,35 @@ namespace mt_admin
       if (!success) 
         return Conflict($"Realm '{realmName}' already exists.");
 
-      success = await _kcAdmin.AddRealmToCustomerAsync(realmName, me.UserName, RegisterUserDto.CustomerRealm);
+      success = await _kcAdmin.AddRealmToCustomerAsync(realmName, me.UserName, Constants.CustomerRealm);
       return Ok($"Realm '{realmName}' has been created.");
     }
+
+    [HttpDelete]
+    [Route("DeleteRealm")]
+    public async Task<IActionResult> DeleteRealm(DeleteRealmDto req)
+    {
+      var me = GetWhoIAm();
+
+      if (me.RealmName != Constants.CustomerRealm)
+      {
+        return Conflict($"Realm '{me.RealmName}' is not allowed to delete realms.");
+      }
+
+      if (string.IsNullOrEmpty(req.RealmName))
+        return BadRequest("RealmName is required.");
+
+      // удалить сам реалм
+      var success = await _kcAdmin.DeleteRealmAsync(req.RealmName);
+      if (!success)
+        return Conflict($"Realm '{req.RealmName}' does not exist or cannot be deleted.");
+
+      // убрать его из realmsOwned текущего пользователя
+      await _kcAdmin.RemoveRealmFromCustomerAsync(req.RealmName, me.UserName, Constants.CustomerRealm);
+
+      return Ok($"Realm '{req.RealmName}' has been deleted.");
+    }
+
 
     [AllowAnonymous]
     [HttpGet]
@@ -128,6 +155,32 @@ namespace mt_admin
       return Ok(users);
     }
 
+    [Authorize]
+    [HttpGet("GetLoggedInUser")]
+    public async Task<IActionResult> GetLoggedInUser()
+    {
+      var me = GetWhoIAm();
+
+      if (string.IsNullOrEmpty(me.UserName))
+        return Unauthorized("UserName not found in token");
+
+      if (string.IsNullOrEmpty(me.RealmName))
+        return Unauthorized("RealmName not found in token");
+
+      // Тянем всех пользователей реалма
+      var users = await _kcAdmin.GetUsersAsync(me.RealmName);
+      if (users == null)
+        return NotFound("Realm users not found");
+
+      // Ищем текущего
+      var user = users.FirstOrDefault(u => u.UserName == me.UserName);
+
+      if (user == null)
+        return NotFound($"User {me.UserName} not found in realm {me.RealmName}");
+
+      return Ok(user);
+    }
+
 
     [HttpPost]
     [Route("GetUserRoles")]
@@ -154,10 +207,8 @@ namespace mt_admin
     [HttpPost("Register")]
     public async Task<IActionResult> Register(RegisterUserDto dto)
     {
-      
-
       // Проверяем, нет ли пользователя с таким email уже
-      var existingUsers = await _kcAdmin.GetUsersAsync(RegisterUserDto.CustomerRealm);
+      var existingUsers = await _kcAdmin.GetUsersAsync(Constants.CustomerRealm);
       
       existingUsers = existingUsers.Where(u=>u.Email == dto.Email);
 
@@ -167,7 +218,7 @@ namespace mt_admin
       }
 
       // Создаём пользователя
-      var createSuccess = await _kcAdmin.CreateUserAsync(RegisterUserDto.CustomerRealm, dto.Username, dto.Password, dto.Email);
+      var createSuccess = await _kcAdmin.CreateUserAsync(Constants.CustomerRealm, dto.Username, dto.Password, dto.Email);
       if (!createSuccess)
       {
         return StatusCode(500, "Failed to create user. Perhaps the username already exists.");
@@ -175,7 +226,7 @@ namespace mt_admin
 
       // Назначаем роль (например, tenant_admin) — если используете роли
       await _kcAdmin.AssignRolesToUserAsync(
-          RegisterUserDto.CustomerRealm,
+          Constants.CustomerRealm,
           dto.Username,
           new[] { new Role { Name = "tenant_admin" } }
       );

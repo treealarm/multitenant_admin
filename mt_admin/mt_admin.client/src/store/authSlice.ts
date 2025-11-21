@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 interface LoginDto {
-  realm: string;
   username: string;
   password: string;
 }
@@ -21,14 +20,14 @@ const initialState: AuthState = {
   loading: false,
 };
 
-export const login = createAsyncThunk<
-  { realm: string; token: string; refresh_token:string },
+export const customer_login = createAsyncThunk<
+  {token: string; refresh_token:string },
   LoginDto
->("auth/login", async ({ realm, username, password }) => {
-  const res = await fetch("/api/Auth/login", {
+  >("auth/customer_login", async ({ username, password }) => {
+    const res = await fetch("/api/Auth/customer_login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ realm, username, password }),
+    body: JSON.stringify({ username, password }),
   });
 
   const text = await res.text();
@@ -41,10 +40,9 @@ export const login = createAsyncThunk<
   const token = data.access_token;
   const refresh_token = data.refresh_token;
   localStorage.setItem("token", token);
-  localStorage.setItem("realm", realm);
   localStorage.setItem("refresh_token", refresh_token);
 
-  return { realm, token , refresh_token};
+  return { token , refresh_token};
 });
 
 export const refreshToken = createAsyncThunk<{ token: string }, void>(
@@ -89,33 +87,29 @@ const authSlice = createSlice({
       state.realm = null;
       state.token = null;
       localStorage.removeItem("token");
-      localStorage.removeItem("realm");
       localStorage.removeItem("refresh_token");
     },
     restoreSession(state) {
       const savedToken = localStorage.getItem("token");
-      const savedRealm = localStorage.getItem("realm");
       const savedRefreshToken = localStorage.getItem("refresh_token");
-      if (savedToken && savedRealm) {
+      if (savedToken) {
         state.token = savedToken;
-        state.realm = savedRealm;
         state.refresh_token = savedRefreshToken;
       }
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(login.pending, (state) => {
+      .addCase(customer_login.pending, (state) => {
         state.loading = true;
         state.error = undefined;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(customer_login.fulfilled, (state, action) => {
         state.loading = false;
-        state.realm = action.payload.realm;
         state.token = action.payload.token;
         state.refresh_token = action.payload.refresh_token;
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(customer_login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

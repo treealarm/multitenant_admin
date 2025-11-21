@@ -7,7 +7,7 @@ import { AppHeader } from "./components/AppHeader";
 
 import { LoginForm } from "./components/LoginForm";
 import { RegisterForm } from "./components/RegisterForm";
-import { UsersList } from "./components/UsersList";
+import { RealmUsersManager } from "./components/RealmUsersManager";
 
 // Настройка темы MUI
 const theme = createTheme({
@@ -25,7 +25,7 @@ const theme = createTheme({
 function AppRoutes() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { token, realm } = useAppSelector((s) => s.auth);
+  const { token } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
     if (token) {
@@ -42,7 +42,7 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/"
-        element={token && realm ? <UsersList realm={realm} /> : <Navigate to="/auth" replace />}
+        element={token ? <RealmUsersManager/> : <Navigate to="/auth" replace />}
       />
       <Route path="/register" element={<RegisterForm />} />
       <Route path="/login" element={<LoginForm />} />

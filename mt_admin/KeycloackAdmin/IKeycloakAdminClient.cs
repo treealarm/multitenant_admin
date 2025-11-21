@@ -26,7 +26,9 @@ namespace KeycloackAdmin
     }
     Task<bool> IsRealmExistAsync(string realmName);
     Task<bool> CreateRealmAsync(string realmName);
+    Task<bool> DeleteRealmAsync(string realmName);
     Task<bool> AddRealmToCustomerAsync(string realmName, string customerUserName, string customerRealmName);
+    Task<bool> RemoveRealmFromCustomerAsync(string realmName, string customerUserName, string customerRealmName);
     Task<bool> CreateUserAsync(string realmName, string username, string password, string email);
     Task<bool> CreateRoleAsync(string realmName, string roleName);
     Task<bool> AssignRolesToUserAsync(string realmName, string username, IEnumerable<Role> roles);

@@ -6,9 +6,13 @@ import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux
 // Например, usersReducer для списка пользователей
 import usersReducer from './store/usersSlice';
 import authReducer from "./store/authSlice";
+import curUserReducer from "./store/currentUserSlice";
+
 export const reducers = combineReducers({
   users: usersReducer,
   auth: authReducer,
+  curUser: curUserReducer
+  
   // можно добавить другие редьюсеры
 });
 
