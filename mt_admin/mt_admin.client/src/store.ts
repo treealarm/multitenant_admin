@@ -7,12 +7,13 @@ import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux
 import usersReducer from './store/usersSlice';
 import authReducer from "./store/authSlice";
 import curUserReducer from "./store/currentUserSlice";
+import rolesReducer from "./store/rolesSlice";
 
 export const reducers = combineReducers({
   users: usersReducer,
   auth: authReducer,
-  curUser: curUserReducer
-  
+  curUser: curUserReducer,
+  roles: rolesReducer
   // можно добавить другие редьюсеры
 });
 

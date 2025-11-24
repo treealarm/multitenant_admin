@@ -272,7 +272,7 @@ namespace KeycloackAdmin
 
     public async Task<bool> DeleteRealmAsync(string realmName)
     {
-      if (await IsRealmExistAsync(realmName))
+      if (! await IsRealmExistAsync(realmName))
       {
         return false;
       }

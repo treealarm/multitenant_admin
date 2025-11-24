@@ -1,36 +1,48 @@
-import { Box, Button, List, ListItem, ListItemText, TextField } from "@mui/material";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  Box,
+  Grid,
+  Toolbar,
+  IconButton,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemText,
+  Dialog,
+  TextField,
+  Button,
+  ListItemButton
+} from "@mui/material";
+
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { createRealm, deleteRealm, fetchLoggedInUser } from "../store/currentUserSlice";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store";
-import { createRealm, deleteRealm, fetchLoggedInUser } from "../store/currentUserSlice";
 import { UsersList } from "./UsersList";
+import { RolesEditor } from "./RolesEditor";
 
 export function RealmUsersManager() {
   const dispatch = useAppDispatch();
-  const { user, loading } = useAppSelector((s) => s.curUser);
-
-  const realmsOwned = user?.attributes?.realmsOwned ?? [];
+  const { user } = useAppSelector((s) => s.curUser);
 
   const [selectedRealm, setSelectedRealm] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+
+  const [newRealmDialogOpen, setNewRealmDialogOpen] = useState(false);
   const [newRealmName, setNewRealmName] = useState("");
+
+  const realmsOwned = user?.attributes?.realmsOwned ?? [];
 
   useEffect(() => {
     dispatch(fetchLoggedInUser());
   }, [dispatch]);
 
-  const handleSelectRealm = (realm: string) => {
-    setSelectedRealm(realm);
-  };
-
   const handleCreateRealm = async () => {
-    if (!newRealmName) return alert("Enter realm name");
-
-    try {
-      await dispatch(createRealm(newRealmName)).unwrap();
-      setNewRealmName("");
-      dispatch(fetchLoggedInUser());
-    } catch (err: any) {
-      alert(err.message);
-    }
+    await dispatch(createRealm(newRealmName)).unwrap();
+    setNewRealmName("");
+    setNewRealmDialogOpen(false);
+    dispatch(fetchLoggedInUser());
   };
 
   const handleDeleteRealm = async () => {
@@ -47,55 +59,112 @@ export function RealmUsersManager() {
     }
   };
 
-
   return (
-    <Box display="flex" height="100%" gap={2}>
+    <Box display="flex" height="100%">
+      {/* LEFT COLUMN */}
+      <Box
+        width={260}
+        borderRight="1px solid #ccc"
+        display="flex"
+        flexDirection="column"
+      >
+        <Toolbar variant="dense">
+          <Tooltip title="Create Realm">
+            <IconButton onClick={() => setNewRealmDialogOpen(true)}>
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
 
-      {/* LEFT COLUMN – REALMS */}
-      <Box width={250} borderRight="1px solid #ccc" pr={1}>
-        <h3>Your Realms</h3>
-
-        <List>
-          {realmsOwned.map((realm) => (
-            <ListItem
-              button
-              key={realm}
-              selected={realm === selectedRealm}
-              onClick={() => handleSelectRealm(realm)}
+          <Tooltip title="Delete Realm">
+            <IconButton
+              color="error"
+              disabled={!selectedRealm}
+              onClick={handleDeleteRealm}
             >
-              <ListItemText primary={realm} />
-            </ListItem>
-          ))}
-        </List>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Toolbar>
 
-        <Box mt={2} display="flex" flexDirection="column" gap={1}>
+        <Box flexGrow={1} overflow="auto">
+          <List dense>
+            {realmsOwned.map((realm) => (
+              <ListItemButton
+                key={realm}
+                selected={realm === selectedRealm}
+                onClick={() => {
+                  setSelectedRealm(realm);
+                  setSelectedUser(null);
+                }}
+                sx={{
+                  "&.Mui-selected": {
+                    backgroundColor: "primary.light",
+                    color: "white",
+                  },
+                  "&.Mui-selected:hover": {
+                    backgroundColor: "primary.main",
+                  },
+                }}
+              >
+                <ListItemText primary={realm} />
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
+
+      </Box>
+
+      {/* CENTER COLUMN */}
+      <Box
+        flexGrow={1}
+        borderRight="1px solid #ccc"
+        display="flex"
+        flexDirection="column"
+        overflow="hidden"
+      >
+        {selectedRealm ? (
+          <UsersList
+            realm={selectedRealm}
+            selectedUser={selectedUser}
+            onSelectUser={setSelectedUser}
+          />
+        ) : (
+          <Box p={2}>Select a realm</Box>
+        )}
+      </Box>
+
+      {/* RIGHT COLUMN */}
+      <Box
+        width={260}
+        display="flex"
+        flexDirection="column"
+        overflow="hidden"
+      >
+        {selectedUser ? (
+          <RolesEditor realm={selectedRealm!} username={selectedUser} />
+        ) : (
+          <Box p={2}>Select a user</Box>
+        )}
+      </Box>
+
+      {/* CREATE REALM DIALOG */}
+      <Dialog open={newRealmDialogOpen} onClose={() => setNewRealmDialogOpen(false)}>
+        <Box p={2} width={300}>
+          <h3>Create new realm</h3>
           <TextField
-            label="New realm name"
+            fullWidth
+            label="Realm name"
             value={newRealmName}
             onChange={(e) => setNewRealmName(e.target.value)}
           />
-          <Button variant="contained" onClick={handleCreateRealm}>
-            Create Realm
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            disabled={!selectedRealm}
-            onClick={handleDeleteRealm}
-          >
-            Delete Realm
-          </Button>
+          <Box mt={2} display="flex" justifyContent="flex-end">
+            <Button onClick={() => setNewRealmDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateRealm} variant="contained">
+              Create
+            </Button>
+          </Box>
         </Box>
-      </Box>
-
-      {/* RIGHT COLUMN – USERS */}
-      <Box flexGrow={1} pl={2}>
-        {selectedRealm ? (
-          <UsersList realm={selectedRealm} />
-        ) : (
-          <p>Select a realm to view its users</p>
-        )}
-      </Box>
+      </Dialog>
     </Box>
   );
 }
