@@ -1,6 +1,7 @@
 ﻿using KeycloackAdmin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
 using static System.Net.WebRequestMethods;
 
 namespace mt_admin
@@ -57,10 +58,12 @@ namespace mt_admin
     [AllowAnonymous]
     public async Task<IActionResult> ValidateToken([FromHeader(Name = "Authorization")] string authHeader)
     {
-      if (string.IsNullOrEmpty(authHeader)) return Unauthorized();
+      await Task.Delay(0);
+      if (string.IsNullOrEmpty(authHeader)) 
+        return Unauthorized();
 
       var token = authHeader.Replace("Bearer ", "");
-      var valid = await _kcAdmin.IsTokenValid(token); // метод проверки токена через Keycloak или внутреннюю логику
+      var valid = _kcAdmin.IsTokenValid(token); // метод проверки токена через Keycloak или внутреннюю логику
       if (!valid) 
         return Unauthorized();
 

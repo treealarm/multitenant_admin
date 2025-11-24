@@ -97,10 +97,18 @@ namespace mt_admin
     [Route("GetRealmComponents")]
     public async Task<IActionResult> GetRealmComponents(string realmName)
     {
-      var components = await _kcAdmin.GetRealmComponents(realmName);
-      return Ok(components);
+      var data = await _kcAdmin.GetRealmComponents(realmName);
+      return Ok(data);
     }
 
+    [AllowAnonymous]
+    [HttpGet]
+    [Route("GetRealmRoles")]
+    public async Task<IActionResult> GetRealmRoles(string realmName)
+    {
+      var data = await _kcAdmin.GetRealmRolesAsync(realmName);
+      return Ok(data.Select(r=>r.Name));
+    }
     /// <summary>
     /// Create a new user.
     /// </summary>
@@ -187,7 +195,7 @@ namespace mt_admin
     public async Task<IActionResult> GetUserRoles(UserDto dto)
     {
       var roles = await _kcAdmin.GetUserRolesAsync(dto.RealmName, dto.UserName);
-      return Ok(roles);
+      return Ok(roles.Select(r=>r.Name));
     }
 
     /// <summary>

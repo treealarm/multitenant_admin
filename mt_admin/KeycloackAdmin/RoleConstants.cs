@@ -1,4 +1,4 @@
-﻿namespace mt_admin
+﻿namespace KeycloackAdmin
 {
   public class RoleConstants
   {

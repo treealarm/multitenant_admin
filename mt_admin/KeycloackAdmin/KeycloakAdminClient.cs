@@ -79,7 +79,7 @@ namespace KeycloackAdmin
 
         if (component != null)
         {
-          var profileJsonString = component.Config["kc.user.profile.config"].FirstOrDefault();
+          var profileJsonString = component?.Config?["kc.user.profile.config"].FirstOrDefault();
 
           if (profileJsonString != null)
           {
@@ -292,7 +292,7 @@ namespace KeycloackAdmin
         Id = realmName,
         _Realm = realmName,
         Enabled = true,
-        DefaultRoles = new[] { "offline_access", "uma_authorization", "admin", "anon", "user", "default-roles-" + realmName }
+        DefaultRoles = new[] { RoleConstants.admin, RoleConstants.user, RoleConstants.power_user }
       };
 
       var imported = await _client.ImportRealmAsync(realmName, realm);
@@ -446,34 +446,46 @@ namespace KeycloackAdmin
       return await _client.CreateUserAsync(realmName, user);
     }
 
-    public async Task<bool> AssignRolesToUserAsync(string realmName, string username, IEnumerable<Role> roles)
+    public async Task<bool> AssignRolesToUserAsync(string realmName, string username, IEnumerable<Role> desiredRoles)
     {
+      // 1. Получаем пользователя
       var users = await _client.GetUsersAsync(realmName, username: username);
       var user = users?.FirstOrDefault(u => u.UserName == username);
       if (user == null)
         return false;
 
-      var fullRoles = new List<Role>();
-      foreach (var role in roles)
-      {
-        try
-        {
-          var existingRole = await _client.GetRoleByNameAsync(realmName, role.Name);
-          if (existingRole != null)
-            fullRoles.Add(existingRole);
-        }
-        catch
-        {
-          // ignore missing roles
-        }
-      }
+      // 2. Получаем текущие роли пользователя
+      var currentRoles = (await _client.GetRealmRoleMappingsForUserAsync(realmName, user.Id)).ToList();
 
-      if (!fullRoles.Any())
-        return false;
+      // 3. Получаем все роли реалма (чтобы можно было найти полные объекты ролей)
+      var allRealmRoles = (await _client.GetRolesAsync(realmName, 0, 100, briefRepresentation: true)).ToList();
 
-      return await _client.AddRealmRoleMappingsToUserAsync(realmName, user.Id, fullRoles);
+      // 4. Составляем список ролей, которые нужно добавить (тех, которых нет у пользователя)
+      var rolesToAdd = desiredRoles
+          .Select(r => allRealmRoles.FirstOrDefault(ar => ar.Name == r.Name))
+          .Where(r => r != null && currentRoles.All(cr => cr.Name != r.Name))
+          .ToList();
+
+      // 5. Составляем список ролей, которые нужно удалить (у пользователя, но нет в desiredRoles)
+      var rolesToRemove = currentRoles
+          .Where(cr => desiredRoles.All(dr => dr.Name != cr.Name))
+          .ToList();
+
+      // 6. Выполняем добавление и удаление
+      bool added = true, removed = true;
+      if (rolesToAdd.Any())
+        added = await _client.AddRealmRoleMappingsToUserAsync(realmName, user.Id, rolesToAdd!);
+      if (rolesToRemove.Any())
+        removed = await _client.DeleteRealmRoleMappingsFromUserAsync(realmName, user.Id, rolesToRemove);
+
+      return added && removed;
     }
 
+    public async Task<IEnumerable<Role>> GetRealmRolesAsync(string realmName)
+    {
+      IEnumerable<Role>? roles = await _client.GetRolesAsync(realmName,0,100, briefRepresentation: true);
+      return roles;
+    }
     public async Task<IEnumerable<User>> GetUsersAsync(string realmName)
     {
       var users = await _client.GetUsersAsync(realmName);
@@ -553,25 +565,24 @@ namespace KeycloackAdmin
 
     public async Task<bool> IsRealmExistAsync(string realmName)
     {
+      return await GetRealmAsync(realmName) != null;
+    }
+    public async Task<Realm?> GetRealmAsync(string realmName)
+    {
       Realm? existing = null;
 
       try
       {
         existing = await _client.GetRealmAsync(realmName);
-
-        if (existing != null)
-        {
-          return true;
-        }
+         return existing;
       }
       catch
       {
 
       }
-      return false;
+      return null;
     }
-
-    public async Task<bool> IsTokenValid(string token)
+    public bool IsTokenValid(string token)
     {
       if (string.IsNullOrEmpty(token))
         return false;

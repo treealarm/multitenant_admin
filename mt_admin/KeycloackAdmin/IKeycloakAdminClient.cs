@@ -1,4 +1,5 @@
 ﻿using Keycloak.Net.Core.Models.Root;
+using Keycloak.Net.Models.RealmsAdmin;
 using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
 using Microsoft.IdentityModel.Tokens;
@@ -39,9 +40,11 @@ namespace KeycloackAdmin
     Task<RsaSecurityKey?> GetRealmPublicKeyAsync(string realm, string? kid = null);
     Task<Token> GetTokenAsync(string realm, string clientId, string username, string password);
 
-    Task<bool> IsTokenValid(string token);
+    bool IsTokenValid(string token);
 
     Task<IEnumerable<ComponentEx>?> GetRealmComponents(string realm);
+    Task<Realm?> GetRealmAsync(string realmName);
+    Task<IEnumerable<Role>> GetRealmRolesAsync(string realmName);
     Task<bool> EnableRealmUnmanagetAttribute(string realm);
   }
 }

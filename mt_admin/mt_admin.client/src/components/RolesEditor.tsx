@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Box,
   Checkbox,
@@ -11,14 +12,13 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useAppDispatch, useAppSelector } from "../store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
   fetchRealmRoles,
   fetchUserRoles,
-  assignRole,
-  removeRole,
-} from "../store/rolesSlice"; // поправь путь под свой
+  assignRolesToUser,
+} from "../store/rolesSlice";
 
 interface RolesEditorProps {
   realm: string;
@@ -28,7 +28,11 @@ interface RolesEditorProps {
 export function RolesEditor({ realm, username }: RolesEditorProps) {
   const dispatch = useAppDispatch();
 
-  const { realmRoles, userRoles, loading } = useAppSelector((s) => s.roles);
+
+  const { realmRoles, userRoles, loading, lastUpdate } = useAppSelector(
+    (s) => s.roles
+  );
+
 
   // загружаем роли при выборе юзера/реалма
   useEffect(() => {
@@ -36,17 +40,28 @@ export function RolesEditor({ realm, username }: RolesEditorProps) {
       dispatch(fetchRealmRoles(realm));
       dispatch(fetchUserRoles({ realm, username }));
     }
-  }, [realm, username, dispatch]);
+  }, [realm, username, lastUpdate]);
 
-  const isAssigned = (roleName: string) => userRoles.includes(roleName);
+  // проверка, есть ли роль в текущем списке
+  const isAssigned = (roleName: string) => userRoles?.includes(roleName) ?? false;
 
-  const toggleRole = async (roleName: string) => {
+
+  // toggleRole для галочек: обновляем локальный state и сразу отправляем весь массив на backend
+  const toggleRole = (roleName: string) => {
+    let updatedRoles: string[];
+
     if (isAssigned(roleName)) {
-      await dispatch(removeRole({ realm, username, roleName })).unwrap();
+      updatedRoles = userRoles.filter((r) => r !== roleName); // снимаем галочку
     } else {
-      await dispatch(assignRole({ realm, username, roleName })).unwrap();
+      updatedRoles = [...userRoles, roleName]; // добавляем галочку
     }
 
+    dispatch(assignRolesToUser({ realm, username, roles: updatedRoles }));
+  };
+
+  // Refresh кнопка: заново загружаем роли с backend
+  const refreshRoles = async () => {
+    dispatch(fetchRealmRoles(realm));
     dispatch(fetchUserRoles({ realm, username }));
   };
 
@@ -54,12 +69,7 @@ export function RolesEditor({ realm, username }: RolesEditorProps) {
     <Box height="100%" display="flex" flexDirection="column">
       <Toolbar variant="dense">
         <Tooltip title="Refresh roles">
-          <IconButton
-            onClick={() => {
-              dispatch(fetchRealmRoles(realm));
-              dispatch(fetchUserRoles({ realm, username }));
-            }}
-          >
+          <IconButton onClick={refreshRoles}>
             <RefreshIcon />
           </IconButton>
         </Tooltip>
