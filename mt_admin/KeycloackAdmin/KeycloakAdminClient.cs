@@ -6,6 +6,7 @@ using Keycloak.Net.Models.RealmsAdmin;
 using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualBasic;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -280,7 +281,7 @@ namespace KeycloackAdmin
       return await _client.DeleteRealmAsync(realmName);
     }
       // Создание realm
-      public async Task<bool> CreateRealmAsync(string realmName)
+      public async Task<bool> CreateRealmAsync(string realmName, string clientId)
     {
       if (await IsRealmExistAsync(realmName))
       {
@@ -305,8 +306,8 @@ namespace KeycloackAdmin
 
       var pubClient = new Client
       {
-        ClientId = "pubclient",
-        Name = "pubclient",
+        ClientId = clientId,
+        Name = clientId,
         Enabled = true,
         PublicClient = true,
         Protocol = "openid-connect",
@@ -598,6 +599,16 @@ namespace KeycloackAdmin
       {
         return false; // токен невалидный
       }
+    }
+
+    public async Task<Token?> RefreshAccessToken(string realm, string clientId, string refresh_token)
+    {
+      return await KeycloakRawHelper.RefreshAccessTokenAsync(
+            keycloakUrl: _keycloakUrl,
+            realm: realm,
+            clientId: clientId,
+            clientSecret:string.Empty,
+            refreshToken: refresh_token);
     }
   }
 }

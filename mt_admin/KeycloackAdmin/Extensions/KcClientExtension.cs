@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using Keycloak.Net.Core.Models.Root;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 public static class KeycloakRawHelper
@@ -30,6 +31,35 @@ public static class KeycloakRawHelper
     using var doc = JsonDocument.Parse(json);
     return doc.RootElement.GetProperty("access_token").GetString()!;
   }
+  public static async Task<Token?> RefreshAccessTokenAsync(
+    string keycloakUrl,
+    string realm,
+    string clientId,
+    string clientSecret,
+    string refreshToken)
+  {
+    using var http = new HttpClient();
+
+    var content = new FormUrlEncodedContent(new[]
+    {
+        new KeyValuePair<string, string>("grant_type", "refresh_token"),
+        new KeyValuePair<string, string>("client_id", clientId),
+        new KeyValuePair<string, string>("client_secret", clientSecret),
+        new KeyValuePair<string, string>("refresh_token", refreshToken),
+    });
+
+    var resp = await http.PostAsync(
+        $"{keycloakUrl}/realms/{realm}/protocol/openid-connect/token",
+        content);
+
+    resp.EnsureSuccessStatusCode();
+
+    var json = await resp.Content.ReadAsStringAsync();
+    var token = JsonSerializer.Deserialize<Token>(json);
+
+    return token;
+  }
+
 
   /// <summary>
   /// Получаем raw JSON компонента

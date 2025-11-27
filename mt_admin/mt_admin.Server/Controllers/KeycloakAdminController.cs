@@ -58,7 +58,7 @@ namespace mt_admin
         return Conflict($"User '{me.UserName}' is empty.");
       }
 
-      var success = await _kcAdmin.CreateRealmAsync(realmName);
+      var success = await _kcAdmin.CreateRealmAsync(realmName, Constants.PubClient);
       if (!success) 
         return Conflict($"Realm '{realmName}' already exists.");
 

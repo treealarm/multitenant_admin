@@ -1,8 +1,6 @@
 ﻿using KeycloackAdmin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
-using static System.Net.WebRequestMethods;
 
 namespace mt_admin
 {
@@ -26,7 +24,7 @@ namespace mt_admin
     {
       try
       {
-        var client_id = "pubclient";
+        var client_id = Constants.PubClient;
         if (dto.Realm=="master")
         {
           client_id = "admin-cli";
@@ -45,7 +43,7 @@ namespace mt_admin
     {
       try
       {
-        var client_id = "pubclient";
+        var client_id = Constants.PubClient;
         var content = await _kcAdmin.GetTokenAsync(Constants.CustomerRealm, client_id, dto.Username, dto.Password);
         return Ok(content);
       }
@@ -68,6 +66,27 @@ namespace mt_admin
         return Unauthorized();
 
       return Ok();
+    }
+
+    [HttpPost("RefreshToken")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest req)
+    {
+      await Task.Delay(0);
+
+      if (string.IsNullOrEmpty(req.refresh_token))
+        return Unauthorized("No refresh token");
+
+      // Проверка refresh токена
+      var newAccessToken = await _kcAdmin.RefreshAccessToken(
+        Constants.CustomerRealm, 
+        Constants.PubClient, 
+        req.refresh_token);
+
+      if (newAccessToken == null)
+        return Unauthorized("Refresh token invalid");
+
+      return Ok(newAccessToken);
     }
 
   }

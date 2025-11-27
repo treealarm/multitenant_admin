@@ -20,6 +20,16 @@ const initialState: AuthState = {
   loading: false,
 };
 
+export function getTokenExp(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000; // ms
+  } catch {
+    return null;
+  }
+}
+
+
 export const customer_login = createAsyncThunk<
   {token: string; refresh_token:string },
   LoginDto
@@ -45,21 +55,32 @@ export const customer_login = createAsyncThunk<
   return { token , refresh_token};
 });
 
-export const refreshToken = createAsyncThunk<{ token: string }, void>(
+export const refreshToken = createAsyncThunk<
+  { token: string; refresh_token: string },
+  void
+>(
   "auth/refresh",
   async () => {
     const refresh = localStorage.getItem("refresh_token");
-    const res = await fetch("/api/Auth/Refresh", {
+    const res = await fetch("/api/Auth/RefreshToken", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refresh }),
     });
     if (!res.ok) throw new Error("Cannot refresh token");
+
     const data = await res.json();
+
     localStorage.setItem("token", data.access_token);
-    return { token: data.access_token };
+    localStorage.setItem("refresh_token", data.refresh_token);
+
+    return {
+      token: data.access_token,
+      refresh_token: data.refresh_token
+    };
   }
 );
+
 
 export const validateToken = createAsyncThunk<void, void>(
   "auth/validate",

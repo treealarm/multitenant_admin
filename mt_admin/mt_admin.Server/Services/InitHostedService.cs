@@ -1,4 +1,5 @@
 ﻿using KeycloackAdmin;
+using Keycloak.Net.Models.Clients;
 
 namespace mt_admin
 {
@@ -65,7 +66,7 @@ namespace mt_admin
           }
           else
           {
-            if(await kcAdmin.CreateRealmAsync(Constants.CustomerRealm))
+            if(await kcAdmin.CreateRealmAsync(Constants.CustomerRealm, Constants.PubClient))
             {
               await kcAdmin.CreateUserAsync(Constants.CustomerRealm, "myuser", "myuser", string.Empty);
             }

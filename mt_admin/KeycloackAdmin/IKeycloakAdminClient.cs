@@ -26,7 +26,7 @@ namespace KeycloackAdmin
       return IssuerSigningKey;
     }
     Task<bool> IsRealmExistAsync(string realmName);
-    Task<bool> CreateRealmAsync(string realmName);
+    Task<bool> CreateRealmAsync(string realmName, string clientId);
     Task<bool> DeleteRealmAsync(string realmName);
     Task<bool> AddRealmToCustomerAsync(string realmName, string customerUserName, string customerRealmName);
     Task<bool> RemoveRealmFromCustomerAsync(string realmName, string customerUserName, string customerRealmName);
@@ -46,5 +46,6 @@ namespace KeycloackAdmin
     Task<Realm?> GetRealmAsync(string realmName);
     Task<IEnumerable<Role>> GetRealmRolesAsync(string realmName);
     Task<bool> EnableRealmUnmanagetAttribute(string realm);
+    public Task<Token?> RefreshAccessToken(string realm, string clientId, string refresh_token);
   }
 }

@@ -3,5 +3,6 @@
   public class Constants
   {
     public const string CustomerRealm = "customers"; // Реалм арендаторов
+    public const string PubClient = "pubclient";
   }
 }
