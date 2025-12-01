@@ -6,17 +6,11 @@ using Keycloak.Net.Models.RealmsAdmin;
 using Keycloak.Net.Models.Roles;
 using Keycloak.Net.Models.Users;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualBasic;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace KeycloackAdmin
+namespace KeycloakAdmin
 {
   public class KeycloakAdminClient : IKeycloakAdminClient
   {

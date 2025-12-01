@@ -1,4 +1,5 @@
-﻿using KeycloackAdmin;
+﻿using DbAdmin;
+using KeycloakAdmin;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -73,6 +74,8 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IKeycloakTokenValidator, KeycloakTokenValidatorService>();
 builder.Services.AddTransient<IClaimsTransformation, KeycloakClaimsTransformer>();
+builder.Services.AddTransient<IDBProvisioningService, DBProvisioningService>();
+
 
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, DynamicJwtBearerOptions>();
 

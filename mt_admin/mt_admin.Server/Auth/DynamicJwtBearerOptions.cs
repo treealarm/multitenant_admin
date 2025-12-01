@@ -1,4 +1,4 @@
-﻿using KeycloackAdmin;
+﻿using KeycloakAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -6,8 +6,6 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace mt_admin
 {
-
-
   public class DynamicJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions>
   {
     private readonly KeycloakConfig _config;

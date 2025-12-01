@@ -21,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KeycloackAdmin\KeycloackAdmin.csproj" />
+    <ProjectReference Include="..\DbAdmin\DbAdmin.csproj" />
+    <ProjectReference Include="..\KeycloakAdmin\KeycloakAdmin.csproj" />
     <ProjectReference Include="..\mt_admin.client\mt_admin.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

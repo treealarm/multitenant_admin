@@ -5,7 +5,7 @@ using Keycloak.Net.Models.Users;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 
-namespace KeycloackAdmin
+namespace KeycloakAdmin
 {
   public interface IKeycloakAdminClient
   {
