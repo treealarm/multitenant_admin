@@ -29,16 +29,34 @@ namespace mt_admin
     }
 
     [HttpPost("CreateDB")]
-    public async Task<IActionResult> CreateDB([FromBody] string realmName)
+    public async Task<IActionResult> CreateDB([FromBody] string? dbName)
     {
-      if (string.IsNullOrWhiteSpace(realmName))
+      if (string.IsNullOrWhiteSpace(dbName))
       {
         var me = GetWhoIAm();
-        realmName = me.RealmName;
+        dbName = me.RealmName;
       }     
 
-      await _provisioning.ProvisionRealmAsync(realmName);
-      return Ok($"Realm {realmName} initialized");
+      await _provisioning.CreateDbAsync(dbName);
+      return Ok($"Realm {dbName} initialized");
+    }
+    [HttpPost("DropDB")]
+    [AllowAnonymous]
+    public async Task<IActionResult> DropDB([FromBody] string? dbName = null)
+    {
+      if (string.IsNullOrWhiteSpace(dbName))
+      {
+        if (string.IsNullOrWhiteSpace(dbName))
+        {
+          var me = GetWhoIAm();
+          dbName = me.RealmName;
+        }
+        if (string.IsNullOrWhiteSpace(dbName))
+          return BadRequest("Realm name not provided and not found in token.");
+      }
+
+      await _provisioning.DropDatabaseAsync(dbName);
+      return Ok($"Realm {dbName} dropped.");
     }
   }
 }

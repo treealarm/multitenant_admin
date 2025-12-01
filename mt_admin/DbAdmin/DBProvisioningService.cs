@@ -34,10 +34,10 @@ namespace DbAdmin
       }.ConnectionString;
     }
 
-    public async Task ProvisionRealmAsync(string realmName)
+    public async Task CreateDbAsync(string dbName)
     {
-      await CreateDatabaseAsync(realmName);
-      await ApplySqlScriptsAsync(realmName);
+      await CreateDatabaseAsync(dbName);
+      await ApplySqlScriptsAsync(dbName);
     }
 
     private async Task CreateDatabaseAsync(string dbName)
@@ -45,12 +45,26 @@ namespace DbAdmin
       await using var conn = new NpgsqlConnection(_masterConnectionString);
       await conn.OpenAsync();
 
+      // Проверяем, существует ли база
+      await using var checkCmd = conn.CreateCommand();
+      checkCmd.CommandText = "SELECT 1 FROM pg_database WHERE datname = @dbName";
+      checkCmd.Parameters.AddWithValue("dbName", dbName);
+
+      var exists = await checkCmd.ExecuteScalarAsync();
+      if (exists != null)
+      {
+        Console.WriteLine($"Database {dbName} already exists, skipping creation.");
+        return;
+      }
+
+      // Создаём базу
       await using var cmd = conn.CreateCommand();
       cmd.CommandText = $"CREATE DATABASE \"{dbName}\"";
       await cmd.ExecuteNonQueryAsync();
 
       Console.WriteLine($"Database {dbName} created");
     }
+
 
     private async Task ApplySqlScriptsAsync(string dbName)
     {
@@ -63,7 +77,7 @@ namespace DbAdmin
         Database = dbName
       }.ConnectionString;
 
-      var scriptsPath = Path.Combine(AppContext.BaseDirectory, "init_files", "initdb", "sql_scripts");
+      var scriptsPath = Path.Combine(AppContext.BaseDirectory, "sql_scripts");
       var sqlFiles = Directory.GetFiles(scriptsPath, "*.sql")
                               .OrderBy(f => f)
                               .ToList();
@@ -82,7 +96,31 @@ namespace DbAdmin
         Console.WriteLine($"Executed {Path.GetFileName(file)}");
       }
     }
+    public async Task DropDatabaseAsync(string dbName)
+    {
+      await using var conn = new NpgsqlConnection(_masterConnectionString);
+      await conn.OpenAsync();
 
+      // Завершаем все активные подключения к базе
+      await using (var cmd = conn.CreateCommand())
+      {
+        cmd.CommandText = $@"
+                SELECT pg_terminate_backend(pid) 
+                FROM pg_stat_activity 
+                WHERE datname = @dbName AND pid <> pg_backend_pid();";
+        cmd.Parameters.AddWithValue("dbName", dbName);
+        await cmd.ExecuteNonQueryAsync();
+      }
+
+      // Удаляем базу, если существует
+      await using (var cmd = conn.CreateCommand())
+      {
+        cmd.CommandText = $"DROP DATABASE IF EXISTS \"{dbName}\"";
+        await cmd.ExecuteNonQueryAsync();
+      }
+
+      Console.WriteLine($"Database {dbName} dropped.");
+    }
     private string RemovePsqlCommands(string sql)
     {
       return string.Join("\n",

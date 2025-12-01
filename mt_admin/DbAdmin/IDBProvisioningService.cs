@@ -2,6 +2,7 @@
 {
   public interface IDBProvisioningService
   {
-    Task ProvisionRealmAsync(string realmName);
+    Task CreateDbAsync(string dbName);
+    Task DropDatabaseAsync(string dbName);
   }
 }
