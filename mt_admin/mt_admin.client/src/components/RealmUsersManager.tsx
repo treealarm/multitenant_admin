@@ -14,15 +14,20 @@ import {
 
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import StorageIcon from "@mui/icons-material/Storage";
+
 import { createRealm, deleteRealm, fetchLoggedInUser } from "../store/currentUserSlice";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store";
 import { UsersList } from "./UsersList";
 import { RolesEditor } from "./RolesEditor";
+import { createDB, dropDB } from "../store/dbSlice";
 
 export function RealmUsersManager() {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((s) => s.curUser);
+  const { user, realmOp } = useAppSelector((s) => s.curUser);
+  const dbLoading = useAppSelector(s => s.db.loading);
+
 
   const [selectedRealm, setSelectedRealm] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -36,11 +41,15 @@ export function RealmUsersManager() {
     dispatch(fetchLoggedInUser());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (realmOp?.loading == false)
+      dispatch(fetchLoggedInUser());
+  }, [dispatch, realmOp?.loading]);
+
   const handleCreateRealm = async () => {
-    await dispatch(createRealm(newRealmName)).unwrap();
+    dispatch(createRealm(newRealmName));
     setNewRealmName("");
     setNewRealmDialogOpen(false);
-    dispatch(fetchLoggedInUser());
   };
 
   const handleDeleteRealm = async () => {
@@ -48,13 +57,15 @@ export function RealmUsersManager() {
 
     if (!confirm(`Delete realm '${selectedRealm}'?`)) return;
 
-    try {
-      await dispatch(deleteRealm(selectedRealm)).unwrap();
+      dispatch(deleteRealm(selectedRealm));
+      dispatch(dropDB(selectedRealm));
+
       setSelectedRealm(null);
-      dispatch(fetchLoggedInUser());
-    } catch (err: any) {
-      alert(err.message);
-    }
+  };
+
+  const handleCreateDB = async () => {
+    if (!selectedRealm) return;
+      dispatch(createDB(selectedRealm));
   };
 
   return (
@@ -80,6 +91,15 @@ export function RealmUsersManager() {
               onClick={handleDeleteRealm}
             >
               <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Create database for selected realm">
+            <IconButton
+              disabled={!selectedRealm || dbLoading}
+              onClick={handleCreateDB}
+            >
+              <StorageIcon />
             </IconButton>
           </Tooltip>
         </Toolbar>

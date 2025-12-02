@@ -8,12 +8,14 @@ import usersReducer from './store/usersSlice';
 import authReducer from "./store/authSlice";
 import curUserReducer from "./store/currentUserSlice";
 import rolesReducer from "./store/rolesSlice";
+import dbReducer from "./store/dbSlice";
 
 export const reducers = combineReducers({
   users: usersReducer,
   auth: authReducer,
   curUser: curUserReducer,
-  roles: rolesReducer
+  roles: rolesReducer,
+  db: dbReducer
   // можно добавить другие редьюсеры
 });
 

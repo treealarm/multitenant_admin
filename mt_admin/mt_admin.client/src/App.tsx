@@ -9,6 +9,7 @@ import { LoginForm } from "./components/LoginForm";
 import { RegisterForm } from "./components/RegisterForm";
 import { RealmUsersManager } from "./components/RealmUsersManager";
 import { AuthGuard } from "./components/AuthGuard";
+import { SnackbarProvider } from "./components/SnackbarProvider";
 
 // Настройка темы MUI
 const theme = createTheme({
@@ -56,6 +57,7 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <BrowserRouter>
         <AuthGuard /> 
+        <SnackbarProvider />
         <AppHeader />  {/* тулбар будет сверху на всех страницах */}
         <Container sx={{ mt: 4 }}>
           <AppRoutes />

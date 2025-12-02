@@ -15,6 +15,11 @@ interface CurrentUserState {
   user?: CurrentUser;
   loading: boolean;
   error?: string;
+  realmOp?: {
+    loading: boolean;
+    error?: string;
+    result?: string;
+  };
 }
 
 const initialState: CurrentUserState = {
@@ -65,7 +70,12 @@ export const fetchLoggedInUser = createAsyncThunk<CurrentUser>(
 const currentUserSlice = createSlice({
   name: "currentUser",
   initialState,
-  reducers: {},
+  reducers: {
+    clearRealmOp(state) {
+      state.realmOp = undefined;
+    }
+
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLoggedInUser.pending, (state) => {
@@ -80,10 +90,28 @@ const currentUserSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
-      .addCase(createRealm.fulfilled, (state) => { })
-      .addCase(deleteRealm.fulfilled, (state) => { });
+      .addCase(createRealm.pending, (state) => {
+        state.realmOp = { loading: true };
+      })
+      .addCase(createRealm.fulfilled, (state) => {
+        state.realmOp = { loading: false, result: "Realm created successfully" };
+      })
+      .addCase(createRealm.rejected, (state, action) => {
+        state.realmOp = { loading: false, error: action.error.message };
+      })
+
+      // --- deleteRealm ---
+      .addCase(deleteRealm.pending, (state) => {
+        state.realmOp = { loading: true };
+      })
+      .addCase(deleteRealm.fulfilled, (state) => {
+        state.realmOp = { loading: false, result: "Realm deleted successfully" };
+      })
+      .addCase(deleteRealm.rejected, (state, action) => {
+        state.realmOp = { loading: false, error: action.error.message };
+      });
       ;
   },
 });
-
+export const { clearRealmOp } = currentUserSlice.actions;
 export default currentUserSlice.reducer;

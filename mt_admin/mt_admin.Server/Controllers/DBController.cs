@@ -38,7 +38,7 @@ namespace mt_admin
       }     
 
       await _provisioning.CreateDbAsync(dbName);
-      return Ok($"Realm {dbName} initialized");
+      return Ok($"Db {dbName} initialized");
     }
     [HttpPost("DropDB")]
     [AllowAnonymous]
@@ -56,7 +56,7 @@ namespace mt_admin
       }
 
       await _provisioning.DropDatabaseAsync(dbName);
-      return Ok($"Realm {dbName} dropped.");
+      return Ok($"Db {dbName} dropped.");
     }
   }
 }
