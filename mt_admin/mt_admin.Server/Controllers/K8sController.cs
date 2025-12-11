@@ -1,0 +1,62 @@
+﻿using KuberAdmin;
+using Microsoft.AspNetCore.Mvc;
+
+namespace mt_admin.Controllers
+{
+  [ApiController]
+  [Route("api/[controller]")]
+  public class K8sController : ControllerBase
+  {
+    private readonly IK8sService _k8s;
+
+    public K8sController(IK8sService k8s)
+    {
+      _k8s = k8s;
+    }
+
+    [HttpPost("CreateNamespace")]
+    public async Task<IActionResult> CreateNamespace([FromBody] string ns)
+    {
+      try
+      {
+        var result = await _k8s.CreateNamespaceAsync(ns);
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex.Message);
+      }
+    }
+
+    [HttpPost("DeployTenant")]
+    public async Task<IActionResult> DeployTenant([FromBody] DeployTenantRequest req)
+    {
+      try
+      {
+        var result = await _k8s.DeployTenantAsync(req.Namespace, req.RealmName);
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex.Message);
+      }
+    }
+
+    [HttpDelete("DeleteNamespace")]
+    public async Task<IActionResult> DeleteNamespace([FromBody] string ns)
+    {
+      try
+      {
+        var result = await _k8s.DeleteNamespaceAsync(ns);
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(ex.Message);
+      }
+    }
+  }
+
+  public record DeployTenantRequest(string Namespace, string RealmName);
+
+}

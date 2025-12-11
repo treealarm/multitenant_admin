@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DbAdmin\DbAdmin.csproj" />
     <ProjectReference Include="..\KeycloakAdmin\KeycloakAdmin.csproj" />
+    <ProjectReference Include="..\KuberAdmin\KuberAdmin.csproj" />
     <ProjectReference Include="..\mt_admin.client\mt_admin.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

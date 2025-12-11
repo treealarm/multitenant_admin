@@ -1,5 +1,6 @@
 ﻿using DbAdmin;
 using KeycloakAdmin;
+using KuberAdmin;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -75,6 +76,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IKeycloakTokenValidator, KeycloakTokenValidatorService>();
 builder.Services.AddTransient<IClaimsTransformation, KeycloakClaimsTransformer>();
 builder.Services.AddTransient<IDBProvisioningService, DBProvisioningService>();
+builder.Services.AddSingleton<IK8sService, K8sService>();
 
 
 builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>, DynamicJwtBearerOptions>();

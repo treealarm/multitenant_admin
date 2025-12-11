@@ -16,7 +16,8 @@
         "MapDatabase__PgHost": "postgresservice",
         "POSTGRES_DB": "keycloak",
         "POSTGRES_PASSWORD": "password",
-        "POSTGRES_USER": "keycloak"
+        "POSTGRES_USER": "keycloak",
+        "KUBECONFIG": "C:\\Users\\Toshiba\\.kube\\config"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5144"

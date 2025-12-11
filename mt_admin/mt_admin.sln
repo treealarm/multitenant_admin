@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DbAdmin", "DbAdmin\DbAdmin.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeycloakAdmin", "KeycloakAdmin\KeycloakAdmin.csproj", "{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KuberAdmin", "KuberAdmin\KuberAdmin.csproj", "{5DEB03E6-22F6-4A54-960D-45A427A6E055}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
