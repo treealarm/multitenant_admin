@@ -5,7 +5,6 @@ import {
   Button,
   CircularProgress,
   List,
-  ListItem,
   ListItemButton,
   ListItemText,
   TextField,
@@ -64,7 +63,7 @@ export function UsersList({
     try {
       await dispatch(
         deleteUser({
-          realm,
+          realmname: realm,
           username: selectedUser,
         })
       ).unwrap();
