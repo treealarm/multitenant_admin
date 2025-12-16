@@ -3,9 +3,11 @@ using KeycloakAdmin;
 using KuberAdmin;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Options;
 using mt_admin;
 using Swashbuckle.AspNetCore.Filters;
+using System.Net;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -86,6 +88,23 @@ builder.Services
   .AddJwtBearer(); // без параметров — всё задаётся через DynamicJwtBearerOptions
 
 builder.Services.AddAuthorization();
+
+var http_port = 8013;
+
+if (int.TryParse(Environment.GetEnvironmentVariable("HTTP_ADMIN_PORT"), out http_port))
+{
+  Console.WriteLine($"HTTP_ADMIN_PORT port: {http_port}");
+}
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+  // this configuration is the same as:
+  //- ASPNETCORE_URLS=http://+:8000;http://+:${GRPC_MAIN_PORT}
+  //- Kestrel__Endpoints__gRPC__Url=http://*:${GRPC_MAIN_PORT}
+  //- Kestrel__Endpoints__gRPC__Protocols=Http2
+  //- Kestrel__Endpoints__Http__Url=http://*:8000
+  options.Listen(IPAddress.Any, http_port);
+});
 
 var app = builder.Build();
 

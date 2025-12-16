@@ -30,7 +30,7 @@ namespace mt_admin
         {
           var handler = new JwtSecurityTokenHandler();
           var jwt = handler.ReadJwtToken(token); // разбор строки токена
-          var issuer = jwt.Issuer; // "http://localhost:8080/realms/myrealm"
+          var issuer = jwt.Issuer; // "http://host:8080/realms/myrealm"
 
           if (string.IsNullOrEmpty(issuer))
             return Array.Empty<SecurityKey>();

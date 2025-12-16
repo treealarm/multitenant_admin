@@ -14,8 +14,8 @@ namespace DbAdmin
 
     public DBProvisioningService()
     {
-      _pgHost = Environment.GetEnvironmentVariable("MapDatabase__PgHost") ?? "localhost";
-      var portStr = Environment.GetEnvironmentVariable("MapDatabase__PgPort") ?? "5432";
+      _pgHost = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
+      var portStr = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
       if (!int.TryParse(portStr, out _pgPort))
         _pgPort = 5432;
       _postgresUser = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "keycloak";

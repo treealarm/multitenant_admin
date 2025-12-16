@@ -33,7 +33,7 @@ namespace mt_admin
       var handler = new JwtSecurityTokenHandler();
       var jwt = handler.ReadJwtToken(token);
 
-      var iss = jwt.Issuer; // например, http://localhost:8080/realms/myrealm
+      var iss = jwt.Issuer; // например, http://host:8080/realms/myrealm
       var kid = jwt.Header.Kid;
 
       // Получаем ключ с кэшем по (issuer, kid)

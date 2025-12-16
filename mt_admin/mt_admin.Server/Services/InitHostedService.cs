@@ -45,6 +45,7 @@ namespace mt_admin
 
       while (!token.IsCancellationRequested)
       {
+        _logger.LogInformation("DoWorkAsync cycle....");
         await Task.Delay(1000, token);
 
         if (DateTime.UtcNow - curDate > TimeSpan.FromMinutes(1))
@@ -54,23 +55,30 @@ namespace mt_admin
           GC.Collect();
         }
 
-        // Инициализация сервисов в скоупе
-        using (var scope = _serviceProvider.CreateScope())
+        try
         {
-          var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
-          if (await kcAdmin.IsRealmExistAsync(Constants.CustomerRealm)
-            && await kcAdmin.EnableRealmUnmanagetAttribute(Constants.CustomerRealm)
-            && _cts != null)
+          // Инициализация сервисов в скоупе
+          using (var scope = _serviceProvider.CreateScope())
           {
-            await _cts.CancelAsync();
-          }
-          else
-          {
-            if(await kcAdmin.CreateRealmAsync(Constants.CustomerRealm, Constants.PubClient))
+            var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
+            if (await kcAdmin.IsRealmExistAsync(Constants.CustomerRealm)
+              && await kcAdmin.EnableRealmUnmanagetAttribute(Constants.CustomerRealm)
+              && _cts != null)
             {
-              await kcAdmin.CreateUserAsync(Constants.CustomerRealm, "myuser", "myuser", string.Empty);
+              await _cts.CancelAsync();
+            }
+            else
+            {
+              if (await kcAdmin.CreateRealmAsync(Constants.CustomerRealm, Constants.PubClient))
+              {
+                await kcAdmin.CreateUserAsync(Constants.CustomerRealm, "myuser", "myuser", string.Empty);
+              }
             }
           }
+        }
+        catch (Exception ex)
+        {
+          _logger.LogError(ex.ToString());
         }
       }
     }
