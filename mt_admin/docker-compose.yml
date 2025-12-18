@@ -1,14 +1,15 @@
-﻿############################
+﻿networks:
+  my-dapr-network:
+    external: true
+
+############################
 # Общие настройки для всех сервисов
 ############################
+
 x-defaults: &default-service
   restart: unless-stopped
   networks:
     - my-dapr-network
-
-networks:
-  my-dapr-network:
-    driver: bridge
 
 services:
   mt_admin.server:
@@ -56,9 +57,11 @@ services:
       - start-dev
       - --import-realm
     ports:
-      - ${KEYCLOAK_PORT}:${KEYCLOAK_PORT}
+      - "${KEYCLOAK_PORT}:${KEYCLOAK_PORT}"
     depends_on:
       - postgresservice
+    env_file:
+      - .env
 
 # command2export realm:docker exec -ti leaflet-keycloakservice-1 /opt/keycloak/bin/kc.sh export --file /opt/keycloak/data/import/realm-export1.json --realm myrealm
 
