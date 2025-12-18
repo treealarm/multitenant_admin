@@ -56,7 +56,7 @@ services:
       - start-dev
       - --import-realm
     ports:
-      - 8080:8080
+      - ${KEYCLOAK_PORT}:${KEYCLOAK_PORT}
     depends_on:
       - postgresservice
 
