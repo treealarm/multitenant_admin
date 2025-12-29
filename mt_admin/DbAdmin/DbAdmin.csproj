@@ -11,49 +11,53 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="sql_scripts\actions.sql">
+    <Folder Include="sql_scripts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\init_files\initdb\sql_scripts\actions.sql" Link="sql_scripts\actions.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\db_values.sql">
+    <None Include="..\init_files\initdb\sql_scripts\db_values.sql" Link="sql_scripts\db_values.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\diagrams.sql">
+    <None Include="..\init_files\initdb\sql_scripts\diagrams.sql" Link="sql_scripts\diagrams.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\diagram_types.sql">
+    <None Include="..\init_files\initdb\sql_scripts\diagram_types.sql" Link="sql_scripts\diagram_types.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\events.sql">
+    <None Include="..\init_files\initdb\sql_scripts\events.sql" Link="sql_scripts\events.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\geo_objects.sql">
+    <None Include="..\init_files\initdb\sql_scripts\geo_objects.sql" Link="sql_scripts\geo_objects.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\groups.sql">
+    <None Include="..\init_files\initdb\sql_scripts\groups.sql" Link="sql_scripts\groups.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\integro.sql">
+    <None Include="..\init_files\initdb\sql_scripts\integro.sql" Link="sql_scripts\integro.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\levels.sql">
+    <None Include="..\init_files\initdb\sql_scripts\levels.sql" Link="sql_scripts\levels.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\main.sql">
+    <None Include="..\init_files\initdb\sql_scripts\main.sql" Link="sql_scripts\main.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\objects.sql">
+    <None Include="..\init_files\initdb\sql_scripts\objects.sql" Link="sql_scripts\objects.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\properties.sql">
+    <None Include="..\init_files\initdb\sql_scripts\properties.sql" Link="sql_scripts\properties.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\rights.sql">
+    <None Include="..\init_files\initdb\sql_scripts\rights.sql" Link="sql_scripts\rights.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\states.sql">
+    <None Include="..\init_files\initdb\sql_scripts\states.sql" Link="sql_scripts\states.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="sql_scripts\track_points.sql">
+    <None Include="..\init_files\initdb\sql_scripts\track_points.sql" Link="sql_scripts\track_points.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -76,3 +76,24 @@ services:
       - ${VALHALLA_PORT}:${VALHALLA_PORT}
     volumes:
       - ${ROOT_DATA}/valhalla_custom_files/:/custom_files
+
+  ############################
+  # Dapr placement
+  ############################
+  placement:
+    <<: *default-service
+    image: "daprio/placement"
+    command: ["./placement", "-port", "${PLACEMENT_PORT}"]
+    ports:
+      - "${PLACEMENT_PORT}:${PLACEMENT_PORT}"
+
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    <<: *default-service
+    image: redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "${REDIS_PORT_OUT}:${REDIS_PORT_IN}"
