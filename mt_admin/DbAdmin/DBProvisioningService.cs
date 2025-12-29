@@ -34,13 +34,22 @@ namespace DbAdmin
       }.ConnectionString;
     }
 
-    public async Task CreateDbAsync(string dbName)
+    public async Task<bool> CreateDbAsync(string dbName)
     {
-      await CreateDatabaseAsync(dbName);
+      if (await CreateDatabaseAsync(dbName))
+      {
+        try
+        {
+          await ApplySqlScriptsAsync(dbName);
+        }
+        catch { }
+        return true;
+      }
       await ApplySqlScriptsAsync(dbName);
+      return true;
     }
 
-    private async Task CreateDatabaseAsync(string dbName)
+    private async Task<bool> CreateDatabaseAsync(string dbName)
     {
       await using var conn = new NpgsqlConnection(_masterConnectionString);
       await conn.OpenAsync();
@@ -54,7 +63,7 @@ namespace DbAdmin
       if (exists != null)
       {
         Console.WriteLine($"Database {dbName} already exists, skipping creation.");
-        return;
+        return true;
       }
 
       // Создаём базу
@@ -63,6 +72,7 @@ namespace DbAdmin
       await cmd.ExecuteNonQueryAsync();
 
       Console.WriteLine($"Database {dbName} created");
+      return true;
     }
 
 

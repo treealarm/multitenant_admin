@@ -2,7 +2,7 @@
 {
   public interface IDBProvisioningService
   {
-    Task CreateDbAsync(string dbName);
+    Task<bool> CreateDbAsync(string dbName);
     Task DropDatabaseAsync(string dbName);
   }
 }

@@ -42,8 +42,8 @@ services:
   keycloakservice:
     <<: *default-service
     image: quay.io/keycloak/keycloak:latest
-    volumes:
-      - ${INIT_FILES}/keycloak_imports:/opt/keycloak/data/import
+    #volumes:
+      #- ${INIT_FILES}/keycloak_imports:/opt/keycloak/data/import
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}

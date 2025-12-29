@@ -7,7 +7,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
-        "KEYCLOAK_URL": "http://localhost1:8080",
+        "KEYCLOAK_URL": "http://localhost:8080",
         "KEYCLOAK_REALM": "master",
         "KEYCLOAK_CLIENT_ID": "admin-cli",
         "KEYCLOAK_ADMIN_USER": "admin",

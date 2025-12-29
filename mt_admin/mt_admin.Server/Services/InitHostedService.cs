@@ -1,5 +1,7 @@
 ﻿using KeycloakAdmin;
 using Keycloak.Net.Models.Clients;
+using DbAdmin;
+using Keycloak.Net.Models.Roles;
 
 namespace mt_admin
 {
@@ -39,6 +41,73 @@ namespace mt_admin
       return _backgroundTask ?? Task.CompletedTask;
     }
 
+    private async Task<bool> CreateCustomerRealm(CancellationToken token)
+    {
+      // Инициализация сервисов в скоупе
+      using (var scope = _serviceProvider.CreateScope())
+      {
+        var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
+        if (await kcAdmin.IsRealmExistAsync(Constants.CustomerRealm)
+          && await kcAdmin.EnableRealmUnmanagetAttribute(Constants.CustomerRealm)
+          && _cts != null)
+        {
+          return true;
+        }
+        else
+        {
+          if (await kcAdmin.CreateRealmAsync(Constants.CustomerRealm, Constants.PubClient))
+          {
+            await kcAdmin.CreateUserAsync(Constants.CustomerRealm, "myuser", "myuser", string.Empty);
+          }
+        }
+      }
+      return false;
+    }
+
+    private async Task<bool> CreateMyRealm(CancellationToken token)
+    {
+      _logger.LogInformation("CreateMyRealm start");
+
+      const string myrealm = "myrealm";
+      const string myuser = "myuser";
+      // Инициализация сервисов в скоупе
+      using (var scope = _serviceProvider.CreateScope())
+      {
+        var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
+
+        if (!await kcAdmin.CreateRealmAsync(myrealm, Constants.PubClient))
+        {
+          return false;
+        };
+        if (!await kcAdmin.CreateUserAsync(myrealm, myuser, myuser, string.Empty))
+        {
+          return false; 
+        }
+
+        var roles = new List<Role>() { new Role{ Name = "admin" } };
+        if (!await kcAdmin.AssignRolesToUserAsync(myrealm, myuser, roles))
+        {
+          return false;
+        }
+
+        if (!await kcAdmin.AddRealmToCustomerAsync(myrealm, myuser, Constants.CustomerRealm))
+        {
+          return false;
+        }
+        if (!await kcAdmin.EnableRealmUnmanagetAttribute(myrealm))
+        {
+          return false;
+        }
+        var provisioning = scope.ServiceProvider.GetRequiredService<IDBProvisioningService>();
+        if (!await provisioning.CreateDbAsync(myrealm))
+        {
+          return false;
+        }
+      }
+
+      _logger.LogInformation("CreateMyRealm succ");
+      return true;
+    }
     private async Task DoWorkAsync(CancellationToken token)
     {
       var curDate = DateTime.UtcNow;
@@ -57,23 +126,9 @@ namespace mt_admin
 
         try
         {
-          // Инициализация сервисов в скоупе
-          using (var scope = _serviceProvider.CreateScope())
+          if (await CreateCustomerRealm(token) && await CreateMyRealm(token))
           {
-            var kcAdmin = scope.ServiceProvider.GetRequiredService<IKeycloakAdminClient>();
-            if (await kcAdmin.IsRealmExistAsync(Constants.CustomerRealm)
-              && await kcAdmin.EnableRealmUnmanagetAttribute(Constants.CustomerRealm)
-              && _cts != null)
-            {
-              await _cts.CancelAsync();
-            }
-            else
-            {
-              if (await kcAdmin.CreateRealmAsync(Constants.CustomerRealm, Constants.PubClient))
-              {
-                await kcAdmin.CreateUserAsync(Constants.CustomerRealm, "myuser", "myuser", string.Empty);
-              }
-            }
+            await _cts!.CancelAsync();
           }
         }
         catch (Exception ex)

@@ -279,7 +279,7 @@ namespace KeycloakAdmin
     {
       if (await IsRealmExistAsync(realmName))
       {
-        return false;
+        return true;
       }
 
       var realm = new Realm
@@ -422,7 +422,8 @@ namespace KeycloakAdmin
       var users = await _client.GetUsersAsync(realmName, username: username);
 
       var user = users?.Where(u => u.UserName == username).FirstOrDefault();
-      if (user != null) return false;
+      if (user != null) 
+        return true;
 
       user = new User
       {
