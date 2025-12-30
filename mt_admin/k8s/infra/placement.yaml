@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: placement
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: placement
+  template:
+    metadata:
+      labels:
+        app: placement
+    spec:
+      containers:
+        - name: placement
+          image: daprio/placement
+          env:
+            - name: PLACEMENT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-config
+                  key: PLACEMENT_PORT
+          args:
+            - ./placement
+            - "-port=$(PLACEMENT_PORT)"   # использовать переменную
+          ports:
+            - containerPort: 50006        # порт для Kubernetes, обычно фиксируем

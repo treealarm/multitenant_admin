@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloakservice
+  namespace: infra
+spec:
+  type: NodePort
+  selector:
+    app: keycloak
+  ports:
+    - port: 8080        # порт внутри кластера
+      targetPort: 8080  # порт контейнера
+      nodePort: 30080   # доступ с хоста через localhost:30080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:latest
+          args:
+            - start-dev
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: infra-config    # обычные переменные
+            - secretRef:
+                name: infra-secret    # пароли

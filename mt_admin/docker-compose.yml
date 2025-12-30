@@ -33,7 +33,7 @@ services:
     image: postgis/postgis
     volumes:
       - ${ROOT_DATA}/postgres_data:/var/lib/postgresql/data
-      - ${INIT_FILES}/initdb:/docker-entrypoint-initdb.d
+      #- ${INIT_FILES}/initdb:/docker-entrypoint-initdb.d
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     env_file:
@@ -55,7 +55,7 @@ services:
       ROOT_LOGLEVEL: ALL
     command: 
       - start-dev
-      - --import-realm
+      #- --import-realm
     ports:
       - "${KEYCLOAK_PORT}:${KEYCLOAK_PORT}"
     depends_on:

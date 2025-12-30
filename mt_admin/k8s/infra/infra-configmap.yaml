@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infra-config
+  namespace: infra
+data:
+  ASPNETCORE_ENVIRONMENT: Development
+
+  VALHALLA_PORT: "8012"
+  HTTP_ADMIN_PORT: "8013"
+  REDIS_PORT_OUT: "6380"
+  REDIS_PORT_IN: "6379"
+  PLACEMENT_PORT: "50006"
+
+  ROOT_DATA: ./root_data
+  INIT_FILES: ./init_files
+
+  POSTGRES_PORT: "5432"
+  POSTGRES_HOST: postgresservice
+  POSTGRES_DB: keycloak
+  POSTGRES_USER: keycloak
+
+  KEYCLOAK_PORT: "8080"
+  KEYCLOAK_URL: "http://keycloakservice:8080"
+  KEYCLOAK_ADMIN_USER: admin
+  KEYCLOAK_CLIENT_ID: admin-cli
+  
+  KC_DB: postgres
+  KC_DB_URL: jdbc:postgresql://postgresservice:5432/keycloak
+  KC_DB_USERNAME: keycloak
