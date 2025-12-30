@@ -8,9 +8,9 @@ spec:
   selector:
     app: keycloak
   ports:
-    - port: 8080        # порт внутри кластера
-      targetPort: 8080  # порт контейнера
-      nodePort: 30080   # доступ с хоста через localhost:30080
+    - port: 8080
+      nodePort: 30080
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,15 +27,34 @@ spec:
       labels:
         app: keycloak
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgresservice 5432; do
+                echo "waiting for postgres..."
+                sleep 2
+              done
+
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:latest
-          args:
-            - start-dev
+          args: ["start-dev"]
           ports:
             - containerPort: 8080
-          envFrom:
-            - configMapRef:
-                name: infra-config    # обычные переменные
-            - secretRef:
-                name: infra-secret    # пароли
+          env:
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://postgresservice:5432/keycloak
+            - name: KC_DB_USERNAME
+              value: keycloak
+            - name: KC_DB_PASSWORD
+              value: password
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: admin

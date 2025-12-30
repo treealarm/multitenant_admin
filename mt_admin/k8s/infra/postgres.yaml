@@ -1,34 +1,8 @@
-# ===============================
-# ConfigMap для общих переменных
-# ===============================
 apiVersion: v1
-kind: ConfigMap
+kind: Namespace
 metadata:
-  name: infra-config
-  namespace: infra
-data:
-  POSTGRES_DB: keycloak
-  POSTGRES_USER: keycloak
-  POSTGRES_HOST: postgresservice
-  POSTGRES_PORT: "5432"
-
+  name: infra
 ---
-# ===============================
-# Secret для паролей
-# ===============================
-apiVersion: v1
-kind: Secret
-metadata:
-  name: infra-secret
-  namespace: infra
-type: Opaque
-stringData:
-  POSTGRES_PASSWORD: password
-
----
-# ===============================
-# Service для Postgres
-# ===============================
 apiVersion: v1
 kind: Service
 metadata:
@@ -40,47 +14,8 @@ spec:
     app: postgres
   ports:
     - port: 5432
-      targetPort: 5432
       nodePort: 30042
-
 ---
-# ===============================
-# PersistentVolume
-# ===============================
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: postgres-pv
-  namespace: infra
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    # Важно: путь к папке на диске Windows через /host_mnt/d/…
-    path: /host_mnt/d/TESTS/multitenant_admin/mt_admin/root_data/postgres_data
-
----
-# ===============================
-# PersistentVolumeClaim
-# ===============================
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-  namespace: infra
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-
----
-# ===============================
-# Deployment Postgres
-# ===============================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -103,24 +38,14 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: infra-config
-                  key: POSTGRES_DB
+              value: keycloak
             - name: POSTGRES_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: infra-config
-                  key: POSTGRES_USER
+              value: keycloak
             - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: infra-secret
-                  key: POSTGRES_PASSWORD
+              value: password
           volumeMounts:
-            - name: postgres-storage
+            - name: pgdata
               mountPath: /var/lib/postgresql/data
       volumes:
-        - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: postgres-pvc
+        - name: pgdata
+          emptyDir: {}
