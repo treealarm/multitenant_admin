@@ -54,7 +54,7 @@ spec:
               value: keycloak
             - name: KC_DB_PASSWORD
               value: password
-            - name: KEYCLOAK_ADMIN
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
               value: admin
-            - name: KEYCLOAK_ADMIN_PASSWORD
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
               value: admin

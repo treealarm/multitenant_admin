@@ -70,12 +70,11 @@ services:
   ############################
   valhallaservice:
     <<: *default-service
-    image: ghcr.io/gis-ops/docker-valhalla/valhalla:latest
+    image: pruginkad/valhalla_moscow:latest
     container_name: valhalla_latest
     ports:
       - ${VALHALLA_PORT}:${VALHALLA_PORT}
-    volumes:
-      - ${ROOT_DATA}/valhalla_custom_files/:/custom_files
+
 
   ############################
   # Dapr placement

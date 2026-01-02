@@ -15,15 +15,10 @@ spec:
     spec:
       containers:
         - name: placement
-          image: daprio/placement
-          env:
-            - name: PLACEMENT_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: infra-config
-                  key: PLACEMENT_PORT
+          image: daprio/placement:latest
           args:
             - ./placement
-            - "-port=$(PLACEMENT_PORT)"   # использовать переменную
+            - "-port"
+            - "50006"
           ports:
-            - containerPort: 50006        # порт для Kubernetes, обычно фиксируем
+            - containerPort: 50006
