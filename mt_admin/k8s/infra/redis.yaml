@@ -4,6 +4,7 @@ metadata:
   name: redis
   namespace: infra
 spec:
+  type: NodePort
   ports:
     - port: 6379         # порт внутри кластера
       targetPort: 6379   # порт контейнера
