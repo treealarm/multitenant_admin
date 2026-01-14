@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpctracksclient
+  namespace: myrealm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpctracksclient
+  template:
+    metadata:
+      labels:
+        app: grpctracksclient
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "grpctracksclient"
+        dapr.io/app-port: "20007"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
+    spec:
+      containers:
+        - name: app
+          image: pruginkad/grpctracksclient:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 20007
+          envFrom:
+            - configMapRef:
+                name: myrealm-env

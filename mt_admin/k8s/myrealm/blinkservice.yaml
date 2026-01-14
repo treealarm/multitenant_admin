@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blinkservice
+  namespace: myrealm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blinkservice
+  template:
+    metadata:
+      labels:
+        app: blinkservice
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "blinkservice"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
+    spec:
+      containers:
+        - name: app
+          image: pruginkad/blinkservice:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: myrealm-env

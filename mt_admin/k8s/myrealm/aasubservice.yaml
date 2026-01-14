@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aasubservice
+  namespace: myrealm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aasubservice
+  template:
+    metadata:
+      labels:
+        app: aasubservice
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "aasubservice"
+        dapr.io/app-port: "20008"
+        dapr.io/app-protocol: "grpc"
+        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
+    spec:
+      containers:
+        - name: app
+          image: pruginkad/aasubservice:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 20008
+          envFrom:
+            - configMapRef:
+                name: myrealm-env
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aasubservice
+  namespace: myrealm
+spec:
+  selector:
+    app: aasubservice
+  ports:
+    - port: 20008

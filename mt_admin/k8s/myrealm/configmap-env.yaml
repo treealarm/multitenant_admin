@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myrealm-env
+  namespace: myrealm
+data:
+  MapDatabase__PgHost: postgresservice.infra.svc.cluster.local
+  MapDatabase__PgPort: "5432"
+
+  RoutingSettings__root_folder: "/leaflet_data"
+  RoutingSettings__RouteInstanse: "russia-latest"
+
+  KeyCloak__RealmName: "myrealm"
+  KeyCloak__BaseAddr: "http://keycloakservice.infra.svc.cluster.local:8080"
+  KeyCloak__admin_name: "admin"
+  KeyCloak__admin_client_id: "admin-cli"
+
+  VALHALLA_PORT: "8012"
+  PLACEMENT_PORT: "50006"
+
+  PUBSUB_NAME: "orderpubsub"
+
+  TRACKS_CLIENT_APP_ID: "grpctracksclient"
+  BLINK_APP_ID: "blinkservice"
+  LEAFLETALARM_APP_ID: "leafletalarms"
+  AASUBSERVICE_APP_ID: "aasubservice"
+
+  POD_NAMESPACE: "myrealm"
+  POSTGRES_USER: "keycloak"

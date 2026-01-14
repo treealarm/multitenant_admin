@@ -30,6 +30,7 @@ spec:
       containers:
         - name: mtadmin
           image: pruginkad/mtadminserver:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8013
           envFrom:
