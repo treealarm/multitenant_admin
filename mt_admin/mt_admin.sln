@@ -9,8 +9,6 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "mt_admin.client", "mt_admin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DbAdmin", "DbAdmin\DbAdmin.csproj", "{8AD0A761-C505-4675-8EB1-5FB73EEC48C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeycloakAdmin", "KeycloakAdmin\KeycloakAdmin.csproj", "{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KuberAdmin", "KuberAdmin\KuberAdmin.csproj", "{5DEB03E6-22F6-4A54-960D-45A427A6E055}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{3F0DCD6E-AB7B-4BE8-B5BF-5E12CBB1F328}"
@@ -35,10 +33,6 @@ Global
 		{8AD0A761-C505-4675-8EB1-5FB73EEC48C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AD0A761-C505-4675-8EB1-5FB73EEC48C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AD0A761-C505-4675-8EB1-5FB73EEC48C1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8CF9EF3D-3555-48F2-BFEB-9F5089548BAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DEB03E6-22F6-4A54-960D-45A427A6E055}.Release|Any CPU.ActiveCfg = Release|Any CPU
