@@ -1,0 +1,3 @@
+[submodule "mt_admin/KeycloakAdmin"]
+	path = mt_admin/KeycloakAdmin
+	url = git@github.com:treealarm/KeycloakAdmin.git
