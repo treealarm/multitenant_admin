@@ -25,5 +25,5 @@ data:
   LEAFLETALARM_APP_ID: "leafletalarms"
   AASUBSERVICE_APP_ID: "aasubservice"
 
-  POD_NAMESPACE: "myrealm"
+  DB_REALM_NAME: "myrealm"
   POSTGRES_USER: "keycloak"
