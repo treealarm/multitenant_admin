@@ -1,6 +1,10 @@
 ﻿using k8s;
+using k8s.Autorest;
 using k8s.Models;
+using System.Net;
 
+// посмотреть айпи миникубера
+// kubectl config view --minify 
 namespace KuberAdmin
 {
   public class K8sService : IK8sService
@@ -47,6 +51,151 @@ namespace KuberAdmin
     {
       await _client.CoreV1.DeleteNamespaceAsync(name);
       return $"Namespace '{name}' deleted.";
+    }
+
+    async Task ApplyNamespace(V1Namespace ns)
+    {
+      try
+      {
+        await _client.CoreV1.ReadNamespaceAsync(ns.Metadata.Name);
+        await _client.CoreV1.ReplaceNamespaceAsync(ns, ns.Metadata.Name);
+      }
+      catch
+      {
+        await _client.CoreV1.CreateNamespaceAsync(ns);
+      }
+    }
+
+    async Task ApplyDeployment(V1Deployment dep)
+    {
+      try
+      {
+        await _client.AppsV1.ReadNamespacedDeploymentAsync(
+          dep.Metadata.Name,
+          dep.Metadata.NamespaceProperty);
+
+        await _client.AppsV1.ReplaceNamespacedDeploymentAsync(
+          dep,
+          dep.Metadata.Name,
+          dep.Metadata.NamespaceProperty);
+      }
+      catch
+      {
+        await _client.AppsV1.CreateNamespacedDeploymentAsync(
+          dep,
+          dep.Metadata.NamespaceProperty);
+      }
+    }
+
+    async Task ApplyConfigMap(V1ConfigMap cm)
+    {
+      var name = cm.Metadata.Name;
+      var ns = cm.Metadata.NamespaceProperty;
+
+      try
+      {
+        var existing = await _client.CoreV1.ReadNamespacedConfigMapAsync(name, ns);
+
+        // сохраняем системные поля
+        cm.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+
+        await _client.CoreV1.ReplaceNamespacedConfigMapAsync(
+          cm,
+          name,
+          ns);
+      }
+      catch (HttpOperationException ex)
+        when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+      {
+        await _client.CoreV1.CreateNamespacedConfigMapAsync(cm, ns);
+      }
+    }
+
+    async Task ApplySecret(V1Secret secret)
+    {
+      var name = secret.Metadata.Name;
+      var ns = secret.Metadata.NamespaceProperty;
+
+      try
+      {
+        var existing = await _client.CoreV1.ReadNamespacedSecretAsync(name, ns);
+
+        // обязательно для replace
+        secret.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+
+        await _client.CoreV1.ReplaceNamespacedSecretAsync(
+          secret,
+          name,
+          ns);
+      }
+      catch (HttpOperationException ex)
+        when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+      {
+        await _client.CoreV1.CreateNamespacedSecretAsync(secret, ns);
+      }
+    }
+
+    public async Task ApplyYamlAsync(string yaml)
+    {
+      var objs = KubernetesYaml.LoadAllFromString(yaml);
+
+      foreach (var obj in objs)
+      {
+        switch (obj)
+        {
+          case V1Namespace ns:
+            await ApplyNamespace(ns);
+            break;
+
+          case V1ConfigMap cm:
+            await ApplyConfigMap(cm);
+            break;
+
+          case V1Secret sec:
+            await ApplySecret(sec);
+            break;
+
+          case V1Deployment dep:
+            await ApplyDeployment(dep);
+            break;
+
+          case V1Service svc:
+            await ApplyService(svc);
+            break;
+
+          default:
+            throw new NotSupportedException(
+              $"Unsupported k8s object {obj.GetType().Name}");
+        }
+      }
+    }
+
+    async Task ApplyService(V1Service svc)
+    {
+      var name = svc.Metadata.Name;
+      var ns = svc.Metadata.NamespaceProperty;
+
+      try
+      {
+        var existing = await _client.CoreV1.ReadNamespacedServiceAsync(name, ns);
+
+        // ОБЯЗАТЕЛЬНО:
+        svc.Metadata.ResourceVersion = existing.Metadata.ResourceVersion;
+
+        // ВАЖНО: ClusterIP immutable
+        svc.Spec.ClusterIP = existing.Spec.ClusterIP;
+        svc.Spec.ClusterIPs = existing.Spec.ClusterIPs;
+
+        await _client.CoreV1.ReplaceNamespacedServiceAsync(
+          svc,
+          name,
+          ns);
+      }
+      catch (HttpOperationException ex)
+        when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+      {
+        await _client.CoreV1.CreateNamespacedServiceAsync(svc, ns);
+      }
     }
 
     public async Task<string> DeployTenantAsync(string ns, string realmName)

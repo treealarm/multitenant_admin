@@ -10,10 +10,9 @@ data:
   RoutingSettings__root_folder: "/leaflet_data"
   RoutingSettings__RouteInstanse: "russia-latest"
 
-  KeyCloak__RealmName: "myrealm"
-  KeyCloak__BaseAddr: "http://keycloakservice.infra.svc.cluster.local:8080"
-  KeyCloak__admin_name: "admin"
-  KeyCloak__admin_client_id: "admin-cli"
+  KEYCLOAK_URL: "http://keycloakservice.infra.svc.cluster.local:8080"
+  KEYCLOAK_ADMIN_USER: "admin"
+  KEYCLOAK_CLIENT_ID: "admin-cli"
 
   VALHALLA_PORT: "8012"
   PLACEMENT_PORT: "50006"
