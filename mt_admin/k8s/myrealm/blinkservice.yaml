@@ -16,7 +16,6 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "blinkservice"
         dapr.io/app-protocol: "grpc"
-        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
     spec:
       containers:
         - name: app
@@ -25,3 +24,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: myrealm-env
+          env:
+            - name: APP_ID
+              value: "blinkservice"

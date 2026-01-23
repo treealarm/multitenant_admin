@@ -17,7 +17,6 @@ spec:
         dapr.io/app-id: "grpctracksclient"
         dapr.io/app-port: "20007"
         dapr.io/app-protocol: "grpc"
-        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
     spec:
       containers:
         - name: app
@@ -28,3 +27,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: myrealm-env
+          env:
+            - name: APP_PORT
+              value: "20007"
+            - name: APP_ID
+              value: "grpctracksclient"

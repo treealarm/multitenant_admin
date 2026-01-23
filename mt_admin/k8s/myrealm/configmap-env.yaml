@@ -14,8 +14,7 @@ data:
   KEYCLOAK_ADMIN_USER: "admin"
   KEYCLOAK_CLIENT_ID: "admin-cli"
 
-  VALHALLA_PORT: "8012"
-  PLACEMENT_PORT: "50006"
+  VALHALLA_URL: "http://valhallaservice.infra.svc.cluster.local:8012"
 
   PUBSUB_NAME: "orderpubsub"
 

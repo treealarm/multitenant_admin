@@ -17,7 +17,6 @@ spec:
         dapr.io/app-id: "aasubservice"
         dapr.io/app-port: "20008"
         dapr.io/app-protocol: "grpc"
-        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
     spec:
       containers:
         - name: app
@@ -28,6 +27,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: myrealm-env
+          env:
+            - name: APP_PORT
+              value: "20008"
+            - name: APP_ID
+              value: "aasubservice"
 ---
 apiVersion: v1
 kind: Service

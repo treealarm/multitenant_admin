@@ -17,7 +17,6 @@ spec:
         dapr.io/app-id: "leafletalarms"
         dapr.io/app-port: "5000"
         dapr.io/app-protocol: "grpc"
-        dapr.io/placement-host-address: "placement.infra.svc.cluster.local:50006"
     spec:
       containers:
         - name: app
@@ -33,9 +32,15 @@ spec:
                 name: myrealm-secrets
           env:
             - name: GRPC_MAIN_PORT
-              value: "5000"
+              value: 5000
             - name: HTTP_PORT
-              value: "8000"
+              value: 8000
+            - name: APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: myrealm-env
+                  key: LEAFLETALARM_APP_ID
+
           volumeMounts:
             - name: leaflet-data
               mountPath: /leaflet_data

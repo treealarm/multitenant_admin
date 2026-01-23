@@ -1,4 +1,4 @@
-kubectl delete namespace myrealm
+#kubectl delete namespace myrealm
 
 kubectl apply -f myrealm
 
