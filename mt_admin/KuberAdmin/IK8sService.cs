@@ -11,6 +11,7 @@ namespace KuberAdmin
     Task<string> CreateNamespaceAsync(string name);
     Task<string> DeployTenantAsync(string ns, string realmName);
     Task<string> DeleteNamespaceAsync(string name);
+    Task ApplyYamlFolderAsync(string folderPath, string ns, string realmName);
   }
 
 }

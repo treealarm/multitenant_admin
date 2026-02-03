@@ -32,4 +32,31 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\k8s\myrealm\00-namespace.yaml" Link="k8_yaml\00-namespace.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\aasubservice.yaml" Link="k8_yaml\aasubservice.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\blinkservice.yaml" Link="k8_yaml\blinkservice.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\configmap-env.yaml" Link="k8_yaml\configmap-env.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\grpctracksclient.yaml" Link="k8_yaml\grpctracksclient.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\leafletalarms.yaml" Link="k8_yaml\leafletalarms.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\pubsub_redis.yaml" Link="k8_yaml\pubsub_redis.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\k8s\myrealm\secret-env.yaml" Link="k8_yaml\secret-env.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

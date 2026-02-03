@@ -39,6 +39,8 @@ metadata:
   name: aasubservice
   namespace: myrealm
 spec:
+  type: NodePort
+  clusterIP: ""
   selector:
     app: aasubservice
   ports:

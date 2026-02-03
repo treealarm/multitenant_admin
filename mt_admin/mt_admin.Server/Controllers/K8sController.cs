@@ -28,13 +28,17 @@ namespace mt_admin.Controllers
       }
     }
 
+
     [HttpPost("DeployTenant")]
     public async Task<IActionResult> DeployTenant([FromBody] DeployTenantRequest req)
     {
       try
       {
-        var result = await _k8s.DeployTenantAsync(req.Namespace, req.RealmName);
-        return Ok(result);
+        string yamlFolder = Path.Combine(AppContext.BaseDirectory, "k8_yaml");
+
+        await _k8s.ApplyYamlFolderAsync(yamlFolder, req.Namespace, req.RealmName);
+
+        return Ok($"Tenant {req.RealmName} deployed to namespace {req.Namespace}");
       }
       catch (Exception ex)
       {

@@ -2,6 +2,7 @@
 using k8s.Autorest;
 using k8s.Models;
 using System.Net;
+using YamlDotNet.Serialization;
 
 // посмотреть айпи миникубера
 // kubectl config view --minify 
@@ -135,15 +136,16 @@ namespace KuberAdmin
       }
     }
 
-    public async Task ApplyYamlAsync(string yaml)
+    public async Task ApplyYamlAsync(List<object> objs, string ns_in)
     {
-      var objs = KubernetesYaml.LoadAllFromString(yaml);
+      //var objs = KubernetesYaml.LoadAllFromString(yaml);
 
       foreach (var obj in objs)
       {
         switch (obj)
         {
           case V1Namespace ns:
+            ns.Metadata.Name = ns_in;
             await ApplyNamespace(ns);
             break;
 
@@ -197,6 +199,76 @@ namespace KuberAdmin
         await _client.CoreV1.CreateNamespacedServiceAsync(svc, ns);
       }
     }
+    async Task ApplyCustomYamlAsync(string yaml, string ns, string realmName)
+    {
+      var deserializer = new DeserializerBuilder().Build();
+
+      // поддержка multi-doc YAML (---)
+      var docs = new StringReader(yaml)
+          .ReadToEnd()
+          .Split("\n---", StringSplitOptions.RemoveEmptyEntries);
+
+      foreach (var doc in docs)
+      {
+        var obj = deserializer.Deserialize<Dictionary<string, object>>(doc);
+
+        var apiVersion = obj["apiVersion"].ToString();
+        var kind = obj["kind"].ToString();
+
+        var metadata = obj["metadata"] as Dictionary<object, object>;
+        if (metadata != null)
+        {
+          metadata["namespace"] = ns;
+        }
+
+        // ConfigMap внутри CRD? (на будущее)
+        if (kind == "ConfigMap" && obj.TryGetValue("data", out var dataObj))
+        {
+          var data = (Dictionary<string, object>)dataObj;
+          data["DB_REALM_NAME"] = realmName;
+        }
+
+        if (apiVersion.StartsWith("dapr.io/"))
+        {
+          await ApplyDaprComponent(obj, apiVersion, kind, ns);
+        }
+        else
+        {
+          throw new NotSupportedException(
+              $"Unknown custom resource {apiVersion}/{kind}");
+        }
+      }
+    }
+
+    async Task ApplyDaprComponent(
+      Dictionary<string, object> obj,
+      string apiVersion,
+      string kind,
+      string ns)
+    {
+      var parts = apiVersion.Split('/');
+      var group = parts[0];        // dapr.io
+      var version = parts[1];      // v1alpha1
+
+      var plural = kind.ToLower() + "s"; // component → components
+
+      try
+      {
+        await _client.CustomObjects.CreateNamespacedCustomObjectAsync(
+            body: obj,
+            group: group,
+            version: version,
+            namespaceParameter: ns,
+            plural: plural
+        );
+
+      }
+      catch (HttpOperationException ex)
+          when (ex.Response.StatusCode == HttpStatusCode.Conflict)
+      {
+        // TODO: Replace (PATCH) если понадобится
+      }
+    }
 
     public async Task<string> DeployTenantAsync(string ns, string realmName)
     {
@@ -247,5 +319,53 @@ namespace KuberAdmin
 
       return $"Deployment deployed to namespace '{ns}'.";
     }
+
+  public async Task ApplyYamlFolderAsync(string folderPath, string ns, string realmName)
+  {
+    var files = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories);
+
+    foreach (var file in files)
+    {
+      var yamlContent = await File.ReadAllTextAsync(file);
+
+      List<object>? objs = null;
+      try
+      {
+        objs = KubernetesYaml.LoadAllFromString(yamlContent);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex.ToString());
+      }
+
+      if (objs == null)
+      {
+        await ApplyCustomYamlAsync(yamlContent, ns, realmName);
+        continue;
+      }
+
+      foreach (var obj in objs)
+      {
+          // 1. Проставляем namespace для всех объектов
+          if (obj is IKubernetesObject<V1ObjectMeta> kObj)
+          {
+            kObj.Metadata.NamespaceProperty = ns;
+          }
+
+          // 2. Если ConfigMap — меняем DB_REALM_NAME
+          if (obj is V1ConfigMap cm)
+        {
+          if (cm.Data == null)
+            cm.Data = new Dictionary<string, string>();
+
+          cm.Data["DB_REALM_NAME"] = realmName;
+        }
+
+        // 3. Применяем объект через ApplyYamlAsync
+        await ApplyYamlAsync(objs, ns);
+      }
+    }
   }
+
+}
 }
