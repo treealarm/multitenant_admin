@@ -14,20 +14,6 @@ namespace mt_admin.Controllers
       _k8s = k8s;
     }
 
-    [HttpPost("CreateNamespace")]
-    public async Task<IActionResult> CreateNamespace([FromBody] string ns)
-    {
-      try
-      {
-        var result = await _k8s.CreateNamespaceAsync(ns);
-        return Ok(result);
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
-
 
     [HttpPost("DeployTenant")]
     public async Task<IActionResult> DeployTenant([FromBody] DeployTenantRequest req)

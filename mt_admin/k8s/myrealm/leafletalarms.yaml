@@ -32,9 +32,9 @@ spec:
                 name: myrealm-secrets
           env:
             - name: GRPC_MAIN_PORT
-              value: 5000
+              value: "5000"
             - name: HTTP_PORT
-              value: 8000
+              value: "8000"
             - name: APP_ID
               valueFrom:
                 configMapKeyRef:
@@ -66,4 +66,4 @@ spec:
     - name: http
       port: 8000
       targetPort: 8000
-      nodePort: 30002
+      #nodePort: 30001

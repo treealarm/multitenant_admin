@@ -31,7 +31,10 @@ spec:
             - name: APP_PORT
               value: "20008"
             - name: APP_ID
-              value: "aasubservice"
+              valueFrom:
+                configMapKeyRef:
+                  name: myrealm-env
+                  key: AASUBSERVICE_APP_ID
 ---
 apiVersion: v1
 kind: Service

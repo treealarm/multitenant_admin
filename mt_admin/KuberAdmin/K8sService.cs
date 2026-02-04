@@ -36,18 +36,10 @@ namespace KuberAdmin
       _client = new Kubernetes(config);
     }
 
-    public async Task<string> CreateNamespaceAsync(string name)
+    static string GenerateAppId(string baseAppId, string ns)
     {
-      var ns = new V1Namespace
-      {
-        Metadata = new V1ObjectMeta { Name = name }
-      };
-
-      await _client.CoreV1.CreateNamespaceAsync(ns);
-
-      return $"Namespace '{name}' created.";
+      return $"{baseAppId}-{ns}";
     }
-
     public async Task<string> DeleteNamespaceAsync(string name)
     {
       await _client.CoreV1.DeleteNamespaceAsync(name);
@@ -69,24 +61,38 @@ namespace KuberAdmin
 
     async Task ApplyDeployment(V1Deployment dep)
     {
+      var ns = dep.Metadata.NamespaceProperty;
+
+      // гарантируем annotations
+      dep.Spec.Template.Metadata.Annotations ??=
+        new Dictionary<string, string>();
+
+      if (dep.Spec.Template.Metadata.Annotations.TryGetValue(
+            "dapr.io/app-id", out var baseAppId))
+      {
+        dep.Spec.Template.Metadata.Annotations["dapr.io/app-id"] =
+          GenerateAppId(baseAppId, ns);
+      }
+
       try
       {
         await _client.AppsV1.ReadNamespacedDeploymentAsync(
           dep.Metadata.Name,
-          dep.Metadata.NamespaceProperty);
+          ns);
 
         await _client.AppsV1.ReplaceNamespacedDeploymentAsync(
           dep,
           dep.Metadata.Name,
-          dep.Metadata.NamespaceProperty);
+          ns);
       }
       catch
       {
         await _client.AppsV1.CreateNamespacedDeploymentAsync(
           dep,
-          dep.Metadata.NamespaceProperty);
+          ns);
       }
     }
+
 
     async Task ApplyConfigMap(V1ConfigMap cm)
     {
@@ -136,12 +142,10 @@ namespace KuberAdmin
       }
     }
 
-    public async Task ApplyYamlAsync(List<object> objs, string ns_in)
+    public async Task ApplyYamlAsync(object obj, string ns_in)
     {
       //var objs = KubernetesYaml.LoadAllFromString(yaml);
 
-      foreach (var obj in objs)
-      {
         switch (obj)
         {
           case V1Namespace ns:
@@ -169,7 +173,6 @@ namespace KuberAdmin
             throw new NotSupportedException(
               $"Unsupported k8s object {obj.GetType().Name}");
         }
-      }
     }
 
     async Task ApplyService(V1Service svc)
@@ -228,7 +231,7 @@ namespace KuberAdmin
           data["DB_REALM_NAME"] = realmName;
         }
 
-        if (apiVersion.StartsWith("dapr.io/"))
+        if (kind != null && apiVersion != null && apiVersion.StartsWith("dapr.io/"))
         {
           await ApplyDaprComponent(obj, apiVersion, kind, ns);
         }
@@ -270,82 +273,32 @@ namespace KuberAdmin
       }
     }
 
-    public async Task<string> DeployTenantAsync(string ns, string realmName)
+    public async Task ApplyYamlFolderAsync(string folderPath, string ns, string realmName)
     {
-      var deployment = new V1Deployment
+      var files = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories);
+
+      foreach (var file in files)
       {
-        Metadata = new V1ObjectMeta
+        var yamlContent = await File.ReadAllTextAsync(file);
+
+        List<object>? objs = null;
+        try
         {
-          Name = "tenant-app",
-          NamespaceProperty = ns
-        },
-        Spec = new V1DeploymentSpec
-        {
-          Replicas = 1,
-          Selector = new V1LabelSelector
-          {
-            MatchLabels = new Dictionary<string, string> { { "app", "tenant-app" } }
-          },
-          Template = new V1PodTemplateSpec
-          {
-            Metadata = new V1ObjectMeta
-            {
-              Labels = new Dictionary<string, string> { { "app", "tenant-app" } }
-            },
-            Spec = new V1PodSpec
-            {
-              Containers = new[]
-                      {
-                                new V1Container
-                                {
-                                    Name = "tenant-app",
-                                    Image = "your-registry/tenant:latest",
-                                    Env = new List<V1EnvVar>
-                                    {
-                                      new V1EnvVar(){ Name = "REALM_NAME", Value = realmName }
-                                    },
-                                    Ports = new[]
-                                    {
-                                        new V1ContainerPort { ContainerPort = 80 }
-                                    }
-                                }
-                            }
-            }
-          }
+          objs = KubernetesYaml.LoadAllFromString(yamlContent);
         }
-      };
+        catch (Exception ex)
+        {
+          Console.WriteLine(ex.ToString());
+        }
 
-      await _client.AppsV1.CreateNamespacedDeploymentAsync(deployment, ns);
+        if (objs == null)
+        {
+          await ApplyCustomYamlAsync(yamlContent, ns, realmName);
+          continue;
+        }
 
-      return $"Deployment deployed to namespace '{ns}'.";
-    }
-
-  public async Task ApplyYamlFolderAsync(string folderPath, string ns, string realmName)
-  {
-    var files = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories);
-
-    foreach (var file in files)
-    {
-      var yamlContent = await File.ReadAllTextAsync(file);
-
-      List<object>? objs = null;
-      try
-      {
-        objs = KubernetesYaml.LoadAllFromString(yamlContent);
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine(ex.ToString());
-      }
-
-      if (objs == null)
-      {
-        await ApplyCustomYamlAsync(yamlContent, ns, realmName);
-        continue;
-      }
-
-      foreach (var obj in objs)
-      {
+        foreach (var obj in objs)
+        {
           // 1. Проставляем namespace для всех объектов
           if (obj is IKubernetesObject<V1ObjectMeta> kObj)
           {
@@ -354,18 +307,33 @@ namespace KuberAdmin
 
           // 2. Если ConfigMap — меняем DB_REALM_NAME
           if (obj is V1ConfigMap cm)
-        {
-          if (cm.Data == null)
-            cm.Data = new Dictionary<string, string>();
+          {
+            if (cm.Data == null)
+              cm.Data = new Dictionary<string, string>();
 
-          cm.Data["DB_REALM_NAME"] = realmName;
+            cm.Data["DB_REALM_NAME"] = realmName;
+            var appIdKeys = new[]
+            {
+              "TRACKS_CLIENT_APP_ID",
+              "BLINK_APP_ID",
+              "LEAFLETALARM_APP_ID",
+              "AASUBSERVICE_APP_ID"
+            };
+
+            foreach (var key in appIdKeys)
+            {
+              if (cm.Data.TryGetValue(key, out var baseAppId))
+              {
+                cm.Data[key] = GenerateAppId(baseAppId, ns);
+              }
+            }
+          }
+
+          // 3. Применяем объект через ApplyYamlAsync
+          await ApplyYamlAsync(obj, ns);
         }
-
-        // 3. Применяем объект через ApplyYamlAsync
-        await ApplyYamlAsync(objs, ns);
       }
     }
-  }
 
-}
+  }
 }

@@ -26,4 +26,7 @@ spec:
                 name: myrealm-env
           env:
             - name: APP_ID
-              value: "blinkservice"
+              valueFrom:
+                configMapKeyRef:
+                  name: myrealm-env
+                  key: BLINK_APP_ID
