@@ -44,7 +44,7 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/"
-        element={token ? <RealmUsersManager/> : <Navigate to="/auth" replace />}
+        element={token ? <RealmUsersManager /> : <Navigate to="/login" replace />}
       />
       <Route path="/register" element={<RegisterForm />} />
       <Route path="/login" element={<LoginForm />} />

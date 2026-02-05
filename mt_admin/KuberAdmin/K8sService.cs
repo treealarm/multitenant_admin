@@ -2,6 +2,7 @@
 using k8s.Autorest;
 using k8s.Models;
 using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using YamlDotNet.Serialization;
 
 // посмотреть айпи миникубера
@@ -273,7 +274,7 @@ namespace KuberAdmin
       }
     }
 
-    public async Task ApplyYamlFolderAsync(string folderPath, string ns, string realmName)
+    public async Task<bool> ApplyYamlFolderAsync(string folderPath, string ns, string db_realmName)
     {
       var files = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories);
 
@@ -293,7 +294,7 @@ namespace KuberAdmin
 
         if (objs == null)
         {
-          await ApplyCustomYamlAsync(yamlContent, ns, realmName);
+          await ApplyCustomYamlAsync(yamlContent, ns, db_realmName);
           continue;
         }
 
@@ -311,7 +312,7 @@ namespace KuberAdmin
             if (cm.Data == null)
               cm.Data = new Dictionary<string, string>();
 
-            cm.Data["DB_REALM_NAME"] = realmName;
+            cm.Data["DB_REALM_NAME"] = db_realmName;
             var appIdKeys = new[]
             {
               "TRACKS_CLIENT_APP_ID",
@@ -333,7 +334,10 @@ namespace KuberAdmin
           await ApplyYamlAsync(obj, ns);
         }
       }
+      return true;
     }
+
+
 
   }
 }

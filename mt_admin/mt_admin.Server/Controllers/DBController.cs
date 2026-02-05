@@ -12,10 +12,10 @@ namespace mt_admin
   [AllowAnonymous]
   public class DBController : ControllerBase
   {
-    private readonly IDBProvisioningService _provisioning;
-    public DBController(IDBProvisioningService provisioning)
+    private readonly IDBProvisioningService _dbAdmin;
+    public DBController(IDBProvisioningService db_admin)
     {
-      _provisioning = provisioning;
+      _dbAdmin = db_admin;
     }
 
     private RolesDto GetWhoIAm()
@@ -37,7 +37,7 @@ namespace mt_admin
         dbName = me.RealmName;
       }     
 
-      await _provisioning.CreateDbAsync(dbName);
+      await _dbAdmin.CreateDbAsync(dbName);
       return Ok($"Db {dbName} initialized");
     }
     [HttpPost("DropDB")]
@@ -55,7 +55,7 @@ namespace mt_admin
           return BadRequest("Realm name not provided and not found in token.");
       }
 
-      await _provisioning.DropDatabaseAsync(dbName);
+      await _dbAdmin.DropDatabaseAsync(dbName);
       return Ok($"Db {dbName} dropped.");
     }
   }

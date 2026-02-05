@@ -20,7 +20,7 @@ namespace mt_admin
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
+    public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
       try
       {
@@ -39,7 +39,7 @@ namespace mt_admin
     }
 
     [HttpPost("customer_login")]
-    public async Task<IActionResult> CustomerLogin(CustomerLoginDto dto)
+    public async Task<IActionResult> CustomerLogin([FromBody] CustomerLoginDto dto)
     {
       try
       {

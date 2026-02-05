@@ -37,7 +37,7 @@ export const customer_login = createAsyncThunk<
     const res = await fetch("/api/Auth/customer_login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ Username: username, Password: password })
   });
 
   const text = await res.text();

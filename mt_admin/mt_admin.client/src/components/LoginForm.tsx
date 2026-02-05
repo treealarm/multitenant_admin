@@ -20,7 +20,7 @@ export  function LoginForm() {
       );
 
       if (customer_login.rejected.match(resultAction)) {
-        setError(resultAction.payload as string);
+        setError(resultAction.error.message as string);
       } else {
         setError(null);
         navigate("/");

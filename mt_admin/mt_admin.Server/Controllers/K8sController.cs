@@ -22,9 +22,9 @@ namespace mt_admin.Controllers
       {
         string yamlFolder = Path.Combine(AppContext.BaseDirectory, "k8_yaml");
 
-        await _k8s.ApplyYamlFolderAsync(yamlFolder, req.Namespace, req.RealmName);
+        await _k8s.ApplyYamlFolderAsync(yamlFolder, req.Namespace, req.DbRealmName);
 
-        return Ok($"Tenant {req.RealmName} deployed to namespace {req.Namespace}");
+        return Ok($"Tenant {req.DbRealmName} deployed to namespace {req.Namespace}");
       }
       catch (Exception ex)
       {
@@ -47,6 +47,6 @@ namespace mt_admin.Controllers
     }
   }
 
-  public record DeployTenantRequest(string Namespace, string RealmName);
+  public record DeployTenantRequest(string Namespace, string DbRealmName);
 
 }

@@ -14,20 +14,20 @@ import {
 
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import StorageIcon from "@mui/icons-material/Storage";
 
-import { createRealm, deleteRealm, fetchLoggedInUser } from "../store/currentUserSlice";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store";
+
 import { UsersList } from "./UsersList";
 import { RolesEditor } from "./RolesEditor";
-import { createDB, dropDB } from "../store/dbSlice";
+
+import { createRealm, deleteRealm, resetProvision } from "../store/provisionSlice";
+import { fetchLoggedInUser } from "../store/currentUserSlice";
 
 export function RealmUsersManager() {
   const dispatch = useAppDispatch();
-  const { user, realmOp } = useAppSelector((s) => s.curUser);
-  const dbLoading = useAppSelector(s => s.db.loading);
-
+  const { user } = useAppSelector((s) => s.curUser);
+  const provisionLoading = useAppSelector((s) => s.provision.loading);
 
   const [selectedRealm, setSelectedRealm] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -37,35 +37,36 @@ export function RealmUsersManager() {
 
   const realmsOwned = user?.attributes?.realmsOwned ?? [];
 
+  // --- Fetch logged in user ---
   useEffect(() => {
     dispatch(fetchLoggedInUser());
   }, [dispatch]);
 
+  // --- Refresh user info after realm ops ---
   useEffect(() => {
-    if (realmOp?.loading == false)
+    if (!provisionLoading) {
       dispatch(fetchLoggedInUser());
-  }, [dispatch, realmOp?.loading]);
+    }
+  }, [dispatch, provisionLoading]);
 
-  const handleCreateRealm = async () => {
+  // --- Create Realm (Provision: Keycloak + DB + K8s) ---
+  const handleCreateRealm = () => {
+    if (!newRealmName) return;
+
+    dispatch(resetProvision()); // очистка прошлых ошибок / статусов
     dispatch(createRealm(newRealmName));
     setNewRealmName("");
     setNewRealmDialogOpen(false);
   };
 
-  const handleDeleteRealm = async () => {
+  // --- Delete Realm (ProvisionController удал€ет всЄ сразу) ---
+  const handleDeleteRealm = () => {
     if (!selectedRealm) return;
-
     if (!confirm(`Delete realm '${selectedRealm}'?`)) return;
 
-      dispatch(deleteRealm(selectedRealm));
-      dispatch(dropDB(selectedRealm));
-
-      setSelectedRealm(null);
-  };
-
-  const handleCreateDB = async () => {
-    if (!selectedRealm) return;
-      dispatch(createDB(selectedRealm));
+    dispatch(resetProvision());
+    dispatch(deleteRealm(selectedRealm));
+    setSelectedRealm(null);
   };
 
   return (
@@ -79,7 +80,10 @@ export function RealmUsersManager() {
       >
         <Toolbar variant="dense">
           <Tooltip title="Create Realm">
-            <IconButton onClick={() => setNewRealmDialogOpen(true)}>
+            <IconButton
+              disabled={provisionLoading}
+              onClick={() => setNewRealmDialogOpen(true)}
+            >
               <AddIcon />
             </IconButton>
           </Tooltip>
@@ -87,19 +91,10 @@ export function RealmUsersManager() {
           <Tooltip title="Delete Realm">
             <IconButton
               color="error"
-              disabled={!selectedRealm}
+              disabled={!selectedRealm || provisionLoading}
               onClick={handleDeleteRealm}
             >
               <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Create database for selected realm">
-            <IconButton
-              disabled={!selectedRealm || dbLoading}
-              onClick={handleCreateDB}
-            >
-              <StorageIcon />
             </IconButton>
           </Tooltip>
         </Toolbar>
@@ -129,7 +124,6 @@ export function RealmUsersManager() {
             ))}
           </List>
         </Box>
-
       </Box>
 
       {/* CENTER COLUMN */}
@@ -177,7 +171,7 @@ export function RealmUsersManager() {
           />
           <Box mt={2} display="flex" justifyContent="flex-end">
             <Button onClick={() => setNewRealmDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreateRealm} variant="contained">
+            <Button onClick={handleCreateRealm} variant="contained" disabled={provisionLoading}>
               Create
             </Button>
           </Box>
