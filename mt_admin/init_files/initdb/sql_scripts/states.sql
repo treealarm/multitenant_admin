@@ -49,9 +49,14 @@ CREATE INDEX IF NOT EXISTS idx_state_descriptions_state_alarm
 -- Хранение текущего состояния тревог для объектов
 -- ================================================================
 CREATE TABLE IF NOT EXISTS public.alarm_states (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    alarm boolean NOT NULL
+    id uuid NOT NULL PRIMARY KEY,
+    alarm boolean,                -- текущая тревога объекта, null = не лист
+    children_alarms int DEFAULT 0 -- количество тревожных детей
 );
+
+CREATE INDEX IF NOT EXISTS idx_alarm_states_alarm_true
+ON public.alarm_states (id)
+WHERE alarm = true;
 
 -- Индексы здесь не обязательны, если предполагается доступ по id (PK)
 
