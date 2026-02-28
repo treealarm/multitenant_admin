@@ -15,26 +15,33 @@ namespace KuberAdmin
 
     public K8sService()
     {
-      KubernetesClientConfiguration config;
-
-      // Если мы внутри Kubernetes — используем InClusterConfig
-      if (KubernetesClientConfiguration.IsInCluster())
+      try
       {
-        config = KubernetesClientConfiguration.InClusterConfig();
+        KubernetesClientConfiguration config;
+
+        // Если мы внутри Kubernetes — используем InClusterConfig
+        if (KubernetesClientConfiguration.IsInCluster())
+        {
+          config = KubernetesClientConfiguration.InClusterConfig();
+        }
+        else
+        {
+          // Иначе — используем локальный kubeconfig
+          var kubeConfigPath = Environment.GetEnvironmentVariable("KUBECONFIG")
+                            ?? Path.Combine(
+                                   Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                                   ".kube",
+                                   "config");
+
+          config = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubeConfigPath);
+        }
+
+        _client = new Kubernetes(config);
       }
-      else
+      catch (Exception ex)
       {
-        // Иначе — используем локальный kubeconfig
-        var kubeConfigPath = Environment.GetEnvironmentVariable("KUBECONFIG")
-                          ?? Path.Combine(
-                                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                                 ".kube",
-                                 "config");
-
-        config = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubeConfigPath);
+        Console.Error.WriteLine(ex);
       }
-
-      _client = new Kubernetes(config);
     }
 
     static string GenerateAppId(string baseAppId, string ns)
@@ -276,6 +283,11 @@ namespace KuberAdmin
 
     public async Task<bool> ApplyYamlFolderAsync(string folderPath, string ns, string db_realmName)
     {
+      if (_client == null)
+      {
+        Console.Error.WriteLine("No k8 found");
+        return false;
+      }
       var files = Directory.GetFiles(folderPath, "*.yaml", SearchOption.AllDirectories);
 
       foreach (var file in files)

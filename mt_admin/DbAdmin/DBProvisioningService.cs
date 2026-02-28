@@ -20,7 +20,7 @@ namespace DbAdmin
         _pgPort = 5432;
       _postgresUser = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "keycloak";
       _postgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password";
-      _pgDB = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "keycloak";
+      _pgDB = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "postgres";
       
 
       // MASTER DB — для команд создания БД
