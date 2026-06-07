@@ -70,7 +70,7 @@ services:
   ############################
   valhallaservice:
     <<: *default-service
-    image: pruginkad/valhalla_moscow:latest
+    image: treealarm/valhalla_moscow:latest
     container_name: valhalla_latest
     ports:
       - ${VALHALLA_PORT}:${VALHALLA_PORT}

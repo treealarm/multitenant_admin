@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Server (.NET)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/mt_admin/mt_admin.Server/bin/Debug/net8.0/mt_admin.Server.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/mt_admin/mt_admin.Server",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "KEYCLOAK_URL": "http://127.0.0.1:8080",
+        "KEYCLOAK_REALM": "master",
+        "KEYCLOAK_CLIENT_ID": "admin-cli",
+        "KEYCLOAK_ADMIN_USER": "admin",
+        "KEYCLOAK_ADMIN_PASSWORD": "admin",
+        "POSTGRES_HOST": "127.0.0.1",
+        "POSTGRES_PORT": "5432",
+        "POSTGRES_DB": "postgres",
+        "POSTGRES_USER": "keycloak",
+        "POSTGRES_PASSWORD": "password",
+        "HTTP_ADMIN_PORT": "8013",
+        "KUBECONFIG": "${env:HOME}/.kube/config"
+      }
+    },
+    {
+      "name": "Client (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5174",
+      "webRoot": "${workspaceFolder}/mt_admin/mt_admin.client",
+      "preLaunchTask": "vite"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack",
+      "configurations": ["Server (.NET)", "Client (Chrome)"],
+      "stopAll": true
+    }
+  ]
+}
