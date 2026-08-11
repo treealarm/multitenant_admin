@@ -43,29 +43,24 @@ builder.Services.AddSwaggerGen(options =>
   options.SwaggerDoc("v1", new() { Title = "MT Admin API", Version = "v1" });
   options.ExampleFilters();
   // Добавляем схему безопасности для Bearer токена
-  options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+  options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
   {
     Name = "Authorization",
-    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+    Type = Microsoft.OpenApi.SecuritySchemeType.Http,
     Scheme = "bearer",
     BearerFormat = "JWT",
-    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    In = Microsoft.OpenApi.ParameterLocation.Header,
     Description = "Input: <Bearer> {token}"
   });
 
-  // Добавляем требование безопасности глобально
-  options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+  // Добавляем требование безопасности глобально.
+  // Схема адресуется ссылкой на документ, который её содержит.
+  options.AddSecurityRequirement(document => new Microsoft.OpenApi.OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme
-                }
-            },
-            Array.Empty<string>()
+            new Microsoft.OpenApi.OpenApiSecuritySchemeReference(
+                JwtBearerDefaults.AuthenticationScheme, document),
+            new List<string>()
         }
     });
 });
