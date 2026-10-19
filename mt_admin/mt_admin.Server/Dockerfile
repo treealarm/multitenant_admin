@@ -6,7 +6,7 @@ WORKDIR /app
 # ===============================
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS with-node
 RUN apt-get update
-RUN apt-get install curl
+RUN apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash
 RUN apt-get -y install nodejs
 
@@ -20,7 +20,6 @@ WORKDIR /src
 COPY ["mt_admin.Server/mt_admin.Server.csproj", "mt_admin.Server/"]
 COPY ["mt_admin.client/mt_admin.client.esproj", "mt_admin.client/"]
 COPY ["DbAdmin/DbAdmin.csproj", "DbAdmin/"]
-COPY ["KeycloakAdmin/KeycloakAdmin.csproj", "KeycloakAdmin/"]
 COPY ["KuberAdmin/KuberAdmin.csproj", "KuberAdmin/"]
 
 RUN dotnet restore "mt_admin.Server/mt_admin.Server.csproj"

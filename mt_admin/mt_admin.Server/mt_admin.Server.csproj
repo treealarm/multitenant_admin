@@ -20,12 +20,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="10.0.1" />
+    <PackageReference Include="KeycloakAdmin" Version="1.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters.Abstractions" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DbAdmin\DbAdmin.csproj" />
-    <ProjectReference Include="..\KeycloakAdmin\KeycloakAdmin.csproj" />
     <ProjectReference Include="..\KuberAdmin\KuberAdmin.csproj" />
     <ProjectReference Include="..\mt_admin.client\mt_admin.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
