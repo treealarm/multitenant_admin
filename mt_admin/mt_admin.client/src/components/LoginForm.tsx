@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { TextField, Button, Box } from "@mui/material";
 import { useAppDispatch } from "../store";
-import { customer_login } from "../store/authSlice";
+import { customer_login, standalone_login } from "../store/authSlice";
 import { useNavigate } from "react-router-dom";
 
-export  function LoginForm() {
+export  function LoginForm({ standalone = false }: { standalone?: boolean }) {
   const dispatch = useAppDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,10 +16,10 @@ export  function LoginForm() {
   const handleSubmit = async () => {
     try {
       const resultAction = await dispatch(
-        customer_login({ username, password })
+        (standalone ? standalone_login : customer_login)({ username, password })
       );
 
-      if (customer_login.rejected.match(resultAction)) {
+      if (customer_login.rejected.match(resultAction) || standalone_login.rejected.match(resultAction)) {
         setError(resultAction.error.message as string);
       } else {
         setError(null);

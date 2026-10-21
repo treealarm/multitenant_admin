@@ -55,6 +55,29 @@ export const customer_login = createAsyncThunk<
   return { token , refresh_token};
 });
 
+// A standalone installation's administrators: the server picks the realm and turns away anyone who
+// is not an administrator, or has not yet replaced an initial password, with a reason in "error".
+export const standalone_login = createAsyncThunk<
+  { token: string; refresh_token: string },
+  LoginDto
+>("auth/standalone_login", async ({ username, password }) => {
+  const res = await fetch("/api/Auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ Realm: "", Username: username, Password: password }),
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    let message = text || `Login failed (${res.status})`;
+    try { message = (JSON.parse(text) as { error?: string }).error ?? message; } catch { /* plain text */ }
+    throw new Error(message);
+  }
+  const data = JSON.parse(text);
+  localStorage.setItem("token", data.access_token);
+  localStorage.setItem("refresh_token", data.refresh_token);
+  return { token: data.access_token, refresh_token: data.refresh_token };
+});
+
 export const refreshToken = createAsyncThunk<
   { token: string; refresh_token: string },
   void
@@ -133,6 +156,11 @@ const authSlice = createSlice({
       .addCase(customer_login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(standalone_login.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.token;
+        state.refresh_token = action.payload.refresh_token;
       });
   },
 });

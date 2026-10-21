@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { loadConfig, type AppConfig } from "./config";
+import { StandaloneUsers } from "./components/StandaloneUsers";
 import { useAppDispatch, useAppSelector } from "./store";
 import { validateToken, logout } from "./store/authSlice";
 import { Routes, Route, Navigate, useNavigate, BrowserRouter } from "react-router-dom";
@@ -24,7 +26,7 @@ const theme = createTheme({
   },
 });
 
-function AppRoutes() {
+function AppRoutes({ config }: { config: AppConfig }) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { token } = useAppSelector((s) => s.auth);
@@ -44,23 +46,33 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/"
-        element={token ? <RealmUsersManager /> : <Navigate to="/login" replace />}
+        element={token
+          ? (config.standalone ? <StandaloneUsers /> : <RealmUsersManager />)
+          : <Navigate to="/login" replace />}
       />
-      <Route path="/register" element={<RegisterForm />} />
-      <Route path="/login" element={<LoginForm />} />
+      {!config.standalone && <Route path="/register" element={<RegisterForm />} />}
+      <Route path="/login" element={<LoginForm standalone={config.standalone} />} />
     </Routes>
   );
 }
 
 export default function App() {
+  const [config, setConfig] = useState<AppConfig | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
+  useEffect(() => {
+    loadConfig().then(setConfig, (e: Error) => setConfigError(e.message));
+  }, []);
+
+  if (!config) return <Container sx={{ mt: 4 }}>{configError ?? "Loading..."}</Container>;
+
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
         <AuthGuard /> 
         <SnackbarProvider />
-        <AppHeader />  {/* тулбар будет сверху на всех страницах */}
+        <AppHeader standalone={config.standalone} />  {/* тулбар будет сверху на всех страницах */}
         <Container sx={{ mt: 4 }}>
-          <AppRoutes />
+          <AppRoutes config={config} />
         </Container>
       </BrowserRouter>
     </ThemeProvider>

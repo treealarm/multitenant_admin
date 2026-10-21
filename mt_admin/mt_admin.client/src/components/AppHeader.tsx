@@ -4,7 +4,7 @@ import { useAppSelector, useAppDispatch } from "../store";
 import { logout } from "../store/authSlice";
 import { Link as RouterLink } from "react-router-dom";
 
-export function AppHeader() {
+export function AppHeader({ standalone = false }: { standalone?: boolean }) {
   const { token } = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
 
@@ -16,7 +16,7 @@ export function AppHeader() {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          MultiTenant Admin
+          {standalone ? "TreeAlarm VMS users" : "MultiTenant Admin"}
         </Typography>
 
         {!token && (
@@ -24,9 +24,11 @@ export function AppHeader() {
             <Button color="inherit" component={RouterLink} to="/login">
               Login
             </Button>
-            <Button color="inherit" component={RouterLink} to="/register">
-              Register
-            </Button>
+            {!standalone && (
+              <Button color="inherit" component={RouterLink} to="/register">
+                Register
+              </Button>
+            )}
           </>
         )}
 
