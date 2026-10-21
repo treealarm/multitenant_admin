@@ -10,8 +10,9 @@ namespace mt_admin
 {
   [ApiController]
   [Route("api/[controller]")]
+  // Authenticated callers only. [AllowAnonymous] on this class, and on most actions, used to override
+  // it and leave user and realm management open to anyone who could reach the port.
   [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-  [AllowAnonymous]
   public class KeycloakAdminController : ControllerBase
   {
     private readonly IKeycloakAdminClient _kcAdmin;
@@ -42,7 +43,6 @@ namespace mt_admin
     /// <summary>
     /// Create a new realm.
     /// </summary>
-    [AllowAnonymous]
     [HttpPost]
     [Route("CreateRealm")]
     public async Task<IActionResult> CreateRealm(string realmName)
@@ -92,7 +92,6 @@ namespace mt_admin
     }
 
 
-    [AllowAnonymous]
     [HttpGet]
     [Route("GetRealmComponents")]
     public async Task<IActionResult> GetRealmComponents(string realmName)
@@ -101,7 +100,6 @@ namespace mt_admin
       return Ok(data);
     }
 
-    [AllowAnonymous]
     [HttpGet]
     [Route("GetRealmRoles")]
     public async Task<IActionResult> GetRealmRoles(string realmName)

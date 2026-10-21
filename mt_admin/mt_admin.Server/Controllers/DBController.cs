@@ -9,7 +9,6 @@ namespace mt_admin
   [Route("api/[controller]")]
   [ApiController]
   [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-  [AllowAnonymous]
   public class DBController : ControllerBase
   {
     private readonly IDBProvisioningService _dbAdmin;
@@ -41,7 +40,6 @@ namespace mt_admin
       return Ok($"Db {dbName} initialized");
     }
     [HttpPost("DropDB")]
-    [AllowAnonymous]
     public async Task<IActionResult> DropDB([FromBody] string? dbName = null)
     {
       if (string.IsNullOrWhiteSpace(dbName))

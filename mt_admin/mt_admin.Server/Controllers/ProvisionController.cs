@@ -17,7 +17,6 @@ namespace mt_admin
   [ApiController]
   [Route("api/[controller]")]
   [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-  [AllowAnonymous]
   public class ProvisionController : ControllerBase
   {
     private readonly IKeycloakAdminClient _kcAdmin;

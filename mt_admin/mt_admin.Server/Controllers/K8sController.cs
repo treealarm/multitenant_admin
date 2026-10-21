@@ -1,10 +1,12 @@
 ﻿using KuberAdmin;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace mt_admin.Controllers
 {
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize]
   public class K8sController : ControllerBase
   {
     private readonly IK8sService _k8s;
