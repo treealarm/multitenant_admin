@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Alert, Box, Button, Checkbox, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
+  Alert, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle,
   FormControlLabel, IconButton, Paper, Switch, Table, TableBody, TableCell, TableHead, TableRow,
   TextField, Tooltip, Typography,
 } from "@mui/material";
@@ -12,7 +12,6 @@ import { authFetch } from "../authFetch";
 interface User {
   username: string;
   isAdmin: boolean;
-  mustChangePassword: boolean;
 }
 
 // The server's rule (UsersController.MinPasswordLength), checked here first.
@@ -33,9 +32,8 @@ async function call(method: string, url: string, body?: unknown): Promise<void> 
 }
 
 /**
- * The users of a standalone TreeAlarm VMS installation. Whoever is created here, or has their
- * password reset, sets a password of their own at their next sign-in to TreeAlarm VMS. Which
- * cameras a non-administrator sees is decided in TreeAlarm VMS, on its Permissions page.
+ * The users of a standalone TreeAlarm VMS installation. Which cameras a non-administrator sees is
+ * decided in TreeAlarm VMS, on its Permissions page.
  */
 export function StandaloneUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -80,7 +78,6 @@ export function StandaloneUsers() {
           <TableRow>
             <TableCell>User</TableCell>
             <TableCell>Administrator</TableCell>
-            <TableCell>Password</TableCell>
             <TableCell align="right" />
           </TableRow>
         </TableHead>
@@ -93,9 +90,6 @@ export function StandaloneUsers() {
                   checked={u.isAdmin}
                   onChange={(e) => void act(() => call("PUT", `/api/users/${encodeURIComponent(u.username)}/admin`, { isAdmin: e.target.checked }))}
                 />
-              </TableCell>
-              <TableCell>
-                {u.mustChangePassword && <Chip size="small" label="to be changed at next sign-in" />}
               </TableCell>
               <TableCell align="right">
                 <Tooltip title="Reset password">
@@ -157,8 +151,8 @@ function AddUserDialog({ open, onClose, onSubmit }: {
       <DialogTitle>Add user</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3, pt: "12px !important", minWidth: 360 }}>
         <TextField label="Username" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
-        <TextField label="Initial password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-          error={problem !== null} helperText={problem ?? "The user replaces it at the first sign-in"} />
+        <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+          error={problem !== null} helperText={problem ?? " "} />
         <FormControlLabel control={<Checkbox checked={isAdmin} onChange={(e) => setIsAdmin(e.target.checked)} />} label="Administrator" />
       </DialogContent>
       <DialogActions>
@@ -183,8 +177,8 @@ function PasswordDialog({ username, onClose, onSubmit }: {
     <Dialog open={username !== null} onClose={onClose}>
       <DialogTitle>Reset the password of {username}</DialogTitle>
       <DialogContent sx={{ pt: "12px !important", minWidth: 360 }}>
-        <TextField fullWidth label="Temporary password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-          error={problem !== null} helperText={problem ?? "The user replaces it at the next sign-in"} autoFocus />
+        <TextField fullWidth label="New password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+          error={problem !== null} helperText={problem ?? " "} autoFocus />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

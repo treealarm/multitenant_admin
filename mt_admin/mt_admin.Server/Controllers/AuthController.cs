@@ -62,8 +62,6 @@ namespace mt_admin
       var roles = RealmRoles(token.AccessToken);
       if (!roles.Contains(RoleConstants.admin))
         return StatusCode(StatusCodes.Status403Forbidden, new { code = "not_admin", error = "Only administrators manage users" });
-      if (roles.Contains(StandaloneMode.PasswordChangeRequired))
-        return StatusCode(StatusCodes.Status403Forbidden, new { code = "password_change_required", error = "Sign in to TreeAlarm VMS and set a new password first" });
       return Ok(token);
     }
 

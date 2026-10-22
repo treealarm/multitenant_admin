@@ -7,9 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace mt_admin;
 
 /// <summary>
-/// The users of a standalone installation's realm (StandaloneMode). A new user, and one whose
-/// password an administrator resets, must set a password of their own at the next login: TreeAlarm
-/// VMS lets an account holding password-change-required do nothing else.
+/// The users of a standalone installation's realm (StandaloneMode). Nobody is made to change the
+/// password an administrator set: whoever wants another sets it in TreeAlarm VMS.
 /// </summary>
 [ApiController]
 [Route("api/users")]
@@ -20,7 +19,7 @@ public sealed class UsersController(IKeycloakAdminClient kc, StandaloneMode mode
   // has no password policy, Keycloak would refuse to import the initial admin/admin under one.
   private const int MinPasswordLength = 8;
 
-  public sealed record UserDto(string Username, bool IsAdmin, bool MustChangePassword);
+  public sealed record UserDto(string Username, bool IsAdmin);
   public sealed record NewUserDto(string Username, string Password, bool IsAdmin);
   public sealed record PasswordDto(string Password);
   public sealed record AdminDto(bool IsAdmin);
@@ -34,7 +33,7 @@ public sealed class UsersController(IKeycloakAdminClient kc, StandaloneMode mode
     foreach (var user in (await kc.GetUsersAsync(mode.Realm)).OrderBy(u => u.UserName, StringComparer.OrdinalIgnoreCase))
     {
       var roles = await RoleNamesAsync(user.UserName);
-      result.Add(new UserDto(user.UserName, roles.Contains(RoleConstants.admin), roles.Contains(StandaloneMode.PasswordChangeRequired)));
+      result.Add(new UserDto(user.UserName, roles.Contains(RoleConstants.admin)));
     }
     return Ok(result);
   }
@@ -54,7 +53,7 @@ public sealed class UsersController(IKeycloakAdminClient kc, StandaloneMode mode
     if (!await kc.CreateUserAsync(mode.Realm, username, dto.Password, email: string.Empty))
       return StatusCode(StatusCodes.Status502BadGateway, Error("keycloak", "Keycloak did not create the user"));
 
-    var roles = new List<string> { dto.IsAdmin ? RoleConstants.admin : RoleConstants.user, StandaloneMode.PasswordChangeRequired };
+    var roles = new List<string> { dto.IsAdmin ? RoleConstants.admin : RoleConstants.user };
     await SetRolesAsync(username, roles);
     return Ok();
   }
@@ -67,19 +66,12 @@ public sealed class UsersController(IKeycloakAdminClient kc, StandaloneMode mode
     return await kc.DeleteUserAsync(mode.Realm, username) ? Ok() : NotFound();
   }
 
-  /// <summary>Sets a password the user must replace at the next login.</summary>
   [HttpPost("{username}/password")]
   public async Task<IActionResult> ResetPassword(string username, PasswordDto dto)
   {
     if (PasswordProblem(dto.Password, username) is { } problem)
       return BadRequest(problem);
-    if (!await kc.SetPasswordAsync(mode.Realm, username, dto.Password))
-      return NotFound();
-
-    var roles = await RoleNamesAsync(username);
-    roles.Add(StandaloneMode.PasswordChangeRequired);
-    await SetRolesAsync(username, roles);
-    return Ok();
+    return await kc.SetPasswordAsync(mode.Realm, username, dto.Password) ? Ok() : NotFound();
   }
 
   [HttpPut("{username}/admin")]

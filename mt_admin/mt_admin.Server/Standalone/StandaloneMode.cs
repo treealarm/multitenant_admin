@@ -9,9 +9,6 @@ namespace mt_admin;
 /// </summary>
 public sealed record StandaloneMode(string Realm, string ClientId)
 {
-  // TreeAlarm VMS gives this realm role to an account that must set a new password before anything
-  // else (the initial admin/admin, or anyone whose password an administrator reset).
-  public const string PasswordChangeRequired = "password-change-required";
   public const string AdminPolicy = "RealmAdmin";
 
   public static StandaloneMode? FromEnvironment()
@@ -25,11 +22,9 @@ public sealed record StandaloneMode(string Realm, string ClientId)
       ? value
       : throw new InvalidOperationException($"Required environment variable '{name}' is not set");
 
-  // The administrators TreeAlarm VMS has: realm role admin, initial password already replaced. The
-  // realm is checked too, because the token validation accepts a token from any realm of the
+  // The administrators TreeAlarm VMS has: realm role admin. The realm is checked too, because the token validation accepts a token from any realm of the
   // Keycloak (DynamicJwtBearerOptions finds the key by the token's own issuer).
   public bool IsAdmin(ClaimsPrincipal user) =>
     user.FindFirst("realm")?.Value == Realm
-    && user.IsInRole(RoleConstants.admin)
-    && !user.IsInRole(PasswordChangeRequired);
+    && user.IsInRole(RoleConstants.admin);
 }
